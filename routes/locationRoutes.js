@@ -16,7 +16,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage })
 // GET
-router.get("/getAllLocation/:domain/:deleted?", locationController.getMasterLocation);
+router.get("/getAllLocation/:domain/:hierarchy/:deleted?", locationController.getMasterLocation);
 router.get("/getLocationById/:id", locationController.getMasterLocationId);
 router.get('/getLocationByType/:company/:jenis/:alamat?', locationController.getLocationByTipe);
 

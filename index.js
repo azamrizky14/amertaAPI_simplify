@@ -1,28 +1,14 @@
     const express = require("express");
     const mongoose = require("mongoose");
-    const Product = require("./models/product.model.js");
-    const productRoute = require("./routes/product.route.js");
+    
     // Auth route 
-    const Auth_route = require("./routes/Auth.route.js");
+    
     // Master 
-    const Master_itemRoute = require("./routes/Master_item.route.js");
-    const Master_list_itemRoute = require("./routes/Master_list_item.route.js");
-
-    const Master_supplier = require("./routes/Master_supplier.route.js");
-    const Master_harga_materialRoute = require("./routes/Master_harga_material.route.js");
-    const Master_pengadaan_barang = require("./routes/Master_pengadaan_barang.route.js")
-    const Master_pengguna = require("./routes/Master_pengguna.route.js");
-
+    const Company = require("./routes/companyRoutes.js");
 
     // Transaksi 
-    const Tr_task = require("./routes/Tr_task.route.js")
-    const Tr_logisticRoute = require("./routes/Tr_logistic.route.js");
-    const Tr_logisticKeluarRoute = require("./routes/Tr_logistic_keluar.route.js");
-    const Tr_qc = require("./routes/Tr_qc.route.js");
-    const Tr_reinput = require("./routes/Tr_reinput.route.js")
-    const Tr_pembayaran = require("./routes/Tr_pembayaran.route.js")
-    const Tr_closing = require("./routes/Tr_closing.route.js")
     const Tr_teknis = require("./routes/Tr_teknis.route.js");
+    const Tr_po = require("./routes/Tr_po.route.js");
 
     // Tambahan
     const userInternal = require("./routes/userInternalRoutes.js");
@@ -42,45 +28,22 @@
     app.use('/images', express.static(path.join(__dirname, 'images'))); 
 
     // Auth Route 
-    app.use("/api/Auth", Auth_route);
+    
     // routes
-    app.use("/api/products", productRoute);
+    
     // Master 
-    app.use("/api/Master_item", Master_itemRoute);
-    app.use("/api/Master_list_item", Master_list_itemRoute)
-    app.use("/api/Master_supplier", Master_supplier)
-    app.use("/api/Master_harga_material", Master_harga_materialRoute)
-    app.use("/api/Master_pengadaan_barang", Master_pengadaan_barang)
-    app.use("/api/Master_pengguna", Master_pengguna);
+    app.use("/api/company", Company)
 
 
     // Transaksi 
-    app.use("/api/Tr_task", Tr_task)
-    app.use("/api/Tr_qc", Tr_qc)
-    app.use("/api/Tr_logistic", Tr_logisticRoute)
-    app.use("/api/Tr_logistic_keluar", Tr_logisticKeluarRoute)
-    app.use("/api/Tr_reinput", Tr_reinput)
-    app.use("/api/Tr_pembayaran", Tr_pembayaran)
-    app.use("/api/Tr_closing", Tr_closing)
     app.use("/api/Tr_teknis", Tr_teknis)
+    app.use("/api/Tr_po", Tr_po)
 
     // Tambahan
     app.use("/api/userInternal", userInternal)
     app.use("/api/utilities", utilities)
     app.use("/api/item", Item);
     app.use("/api/location", Location);
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     app.get("/", (req, res) => {

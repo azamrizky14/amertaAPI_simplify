@@ -1,13 +1,15 @@
 const Tr_teknis = require("../models/Tr_teknis.model");
 const mongoose = require("mongoose");
+const { findByHierarchyAndDomain } = require("../utils/hierarchyAndDomain");
 
 // GET BY DOMAIN
 const getTrTeknis = async (req, res) => {
   try {
-    const { domain, deleted, type, status } = req.params;
+    const { domain, hierarchy, deleted, type, status } = req.params;
 
     // Create a filter object dynamically
-    const filter = { Tr_teknis_domain: domain };
+    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1)
+    const filter = { companyCode: newDomain };
 
     // Add optional filters if provided
     if (deleted) filter.Tr_teknis_deleted = deleted;
@@ -32,10 +34,12 @@ const getTrTeknis = async (req, res) => {
 
 const getTrTeknisEvident = async (req, res) => {
   try {
-    const { domain, deleted, type, status, createdStart, createdEnd } = req.params;
+    const { domain, deleted, type, status, hierarchy, createdStart, createdEnd } =
+      req.params;
 
     // Create a filter object dynamically
-    const filter = { Tr_teknis_domain: domain };
+    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1)
+    const filter = { companyCode: newDomain };
 
     // Add optional filters if provided
     if (deleted) filter.Tr_teknis_deleted = deleted;
@@ -48,9 +52,11 @@ const getTrTeknisEvident = async (req, res) => {
       if (createdStart) filter.Tr_teknis_created.$gte = new Date(createdStart);
       if (createdEnd) filter.Tr_teknis_created.$lte = new Date(createdEnd);
     }
-
+    
     // Fetch the data based on the dynamic filter and sort by Tr_teknis_created
-    const TrTeknis = await Tr_teknis.find(filter).sort({ Tr_teknis_created: -1 }); // Sort by newest date
+    const TrTeknis = await Tr_teknis.find(filter).sort({
+      Tr_teknis_created: -1,
+    }); // Sort by newest date
 
     // Check if any data was found
     if (TrTeknis.length > 0) {
@@ -77,6 +83,45 @@ const getTrTeknisEvident = async (req, res) => {
   }
 };
 
+const getAllWorkOrders = async (req, res) => {
+  try {
+    const { hierarchy, domain, type, month } = req.params;
+
+    let query = { Tr_teknis_deleted: "N" };
+    query.companyCode = await findByHierarchyAndDomain(hierarchy, domain, 1.1)
+
+    // Mengambil semua data Tr_teknis_work_order_terpakai
+    const orders = await Tr_teknis.find(
+      query,
+      "Tr_teknis_work_order_terpakai Tr_teknis_kategori Tr_teknis_tanggal"
+    );
+
+    // Meratakan array Tr_teknis_work_order_terpakai
+    const allWorkOrders = orders
+      .map((order) => order.Tr_teknis_work_order_terpakai)
+      .flat();
+
+    // Filter allWorkOrders berdasarkan type dan month
+    const startDate = new Date(`${month}-01T00:00:00Z`); // 1st day of the month
+    const endDate = new Date(startDate);
+    endDate.setMonth(startDate.getMonth() + 1); // 1st day of next month
+
+    const filteredWorkOrders = allWorkOrders.filter((order) => {
+      const orderDate = new Date(order.Tr_teknis_tanggal);
+      const isSameMonth = orderDate >= startDate && orderDate < endDate;
+      const isSameType = order.Tr_teknis_kategori === type;
+      return isSameMonth && isSameType;
+    });
+
+    // Mengirimkan hasil filter sebagai response JSON
+    res.status(200).json(filteredWorkOrders.length);
+  } catch (error) {
+    console.error("Error fetching work orders:", error);
+    res
+      .status(500)
+      .json({ message: "Error fetching work orders", error: error.message });
+  }
+};
 
 // FIND ONE BY ID
 const getTrTeknisById = async (req, res) => {
@@ -102,7 +147,7 @@ const getTrTeknisEvidentById = async (req, res) => {
     // Query the document
     const TrTeknis = await Tr_teknis.findOne({
       Tr_teknis_logistik_id: logistik_id,
-      "Tr_teknis_work_order_terpakai._id": objectId,
+      // "Tr_teknis_work_order_terpakai._id": objectId,
     });
 
     if (!TrTeknis) {
@@ -113,7 +158,14 @@ const getTrTeknisEvidentById = async (req, res) => {
     const workOrderItem = TrTeknis.Tr_teknis_work_order_terpakai.find(
       (item) => item._id.toString() === objectId.toString()
     );
-  
+
+    // Retry with string ID if the first search fails
+    if (!workOrderItem) {
+      workOrderItem = TrTeknis.Tr_teknis_work_order_terpakai.find(
+        (item) => item._id === id
+      );
+    }
+
     if (!workOrderItem) {
       return res.status(404).json({ message: "Work order item not found" });
     }
@@ -140,51 +192,6 @@ const createTrTeknis = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-// CREATE wiht gambar
-// const createTrTeknisGambar = async(req, res) => {
-//     try {
-//         // const TrTeknisBeforeNames = req.files['Tr_teknis_before'].map(file => file.filename);
-//         // const TrTeknisAfterNames = req.files['Tr_teknis_after'][0].filename;
-//         const {...dynamicFields } = req.body;
-//         const {
-//             Tr_teknis_evident_progress,
-//             Tr_teknis_evident_redaman_odp_depan,
-//             Tr_teknis_evident_redaman_odp_dalam,
-//             Tr_teknis_evident_redaman_ont_depan,
-//             Tr_teknis_evident_redaman_ont_belakang,
-//             Tr_teknis_evident_adaptor,
-//             Tr_teknis_evident_speed_test,
-//             Tr_teknis_evident_pelanggan_dengan_pelanggan,
-//             Tr_teknis_evident_pelanggan_depan_rumah,
-//             Tr_teknis_evident_marking_dc_start,
-//             Tr_teknis_evident_marking_dc_end,
-//             Tr_teknis_evident_review_google,
-//             Tr_teknis_evident_material_terpakai
-//         } = req.files
-//         const newData = new Tr_teknis({
-//             ...dynamicFields,
-//             Tr_teknis_evident_progress: Tr_teknis_evident_progress[0].filename,
-//             Tr_teknis_evident_redaman_odp_depan: Tr_teknis_evident_redaman_odp_depan[0].filename,
-//             Tr_teknis_evident_redaman_odp_dalam: Tr_teknis_evident_redaman_odp_dalam[0].filename,
-//             Tr_teknis_evident_redaman_ont_depan: Tr_teknis_evident_redaman_ont_depan[0].filename,
-//             Tr_teknis_evident_redaman_ont_belakang: Tr_teknis_evident_redaman_ont_belakang[0].filename,
-//             Tr_teknis_evident_adaptor: Tr_teknis_evident_adaptor[0].filename,
-//             Tr_teknis_evident_speed_test: Tr_teknis_evident_speed_test[0].filename,
-//             Tr_teknis_evident_pelanggan_dengan_pelanggan: Tr_teknis_evident_pelanggan_dengan_pelanggan[0].filename,
-//             Tr_teknis_evident_pelanggan_depan_rumah: Tr_teknis_evident_pelanggan_depan_rumah[0].filename,
-//             Tr_teknis_evident_marking_dc_start: Tr_teknis_evident_marking_dc_start[0].filename,
-//             Tr_teknis_evident_marking_dc_end: Tr_teknis_evident_marking_dc_end[0].filename,
-//             Tr_teknis_evident_review_google: Tr_teknis_evident_review_google[0].filename,
-//             Tr_teknis_evident_material_terpakai: Tr_teknis_evident_material_terpakai[0].filename
-//         })
-//         await newData.save()
-//             // const TrTeknisBeforeImages =
-//         res.status(201).json({ message: 'Gambar sudah terupload' })
-//     } catch (error) {
-//         console.error('Gagal menyimpan data', error);
-//         res.status(500).json({ message: error.message })
-//     }
-// }
 const createTrTeknisGambar = async (req, res) => {
   try {
     const { Tr_teknis_jenis, ...dynamicFields } = req.body;
@@ -267,12 +274,10 @@ const createTrTeknisGambar = async (req, res) => {
     });
 
     await newData.save();
-    res
-      .status(201)
-      .json({
-        message: "Data created successfully with images if provided",
-        newData,
-      });
+    res.status(201).json({
+      message: "Data created successfully with images if provided",
+      newData,
+    });
   } catch (error) {
     console.error("Failed to save data:", error);
     res.status(500).json({ message: error.message });
@@ -435,12 +440,10 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
     );
 
     // Send back a success response
-    res
-      .status(200)
-      .json({
-        message: "Data updated successfully",
-        updatedData: updatedRecord,
-      });
+    res.status(200).json({
+      message: "Data updated successfully",
+      updatedData: updatedRecord,
+    });
   } catch (error) {
     console.error("Error during data update:", error);
     res.status(500).json({ message: "An error occurred while updating data" });
@@ -468,12 +471,15 @@ const updateTrTeknisEvidentById = async (req, res) => {
 
     // Parse form data and initialize variables
     const updates = { ...req.body };
-    let workOrderImages = documentExists.Tr_teknis_work_order_terpakai.find(x => x.id = id);
+    let workOrderImages = documentExists.Tr_teknis_work_order_terpakai.find(
+      (x) => (x.id = id)
+    );
 
     // Parse `Tr_teknis_team` and `Tr_teknis_work_order_terpakai_material`
     if (updates.Tr_teknis_team) {
       updates.Tr_teknis_team = JSON.parse(updates.Tr_teknis_team);
-      if (typeof updates.Tr_teknis_team === String) updates.Tr_teknis_team = JSON.parse(updates.Tr_teknis_team);
+      if (typeof updates.Tr_teknis_team === String)
+        updates.Tr_teknis_team = JSON.parse(updates.Tr_teknis_team);
     }
     if (updates.Tr_teknis_work_order_terpakai_material) {
       updates.Tr_teknis_work_order_terpakai_material = JSON.parse(
@@ -544,13 +550,13 @@ const updateTrTeknisEvidentById = async (req, res) => {
     validImageFields.forEach((key) => {
       if (updates[key] instanceof String && updates[key]) {
         workOrderImages.Tr_teknis_work_order_images[key] = updates[key];
-      } else if (updates[key] === '' || updates[key] === null) {
-        workOrderImages.Tr_teknis_work_order_images[key] = '';
+      } else if (updates[key] === "" || updates[key] === null) {
+        workOrderImages.Tr_teknis_work_order_images[key] = "";
       } else if (updates[key] instanceof Array) {
         workOrderImages.Tr_teknis_work_order_images[key] = updates[key][0];
       }
-      delete updates[key]
-    })
+      delete updates[key];
+    });
 
     // Update the specific work order inside the array
     const updatedRecord = await Tr_teknis.findOneAndUpdate(
@@ -560,14 +566,15 @@ const updateTrTeknisEvidentById = async (req, res) => {
       },
       {
         $set: {
-          "Tr_teknis_work_order_terpakai.$[elem].Tr_teknis_work_order_images": workOrderImages.Tr_teknis_work_order_images, // Update image
-        ...Object.entries(updates).reduce((acc, [key, value]) => {
-          // Avoid overwriting the _id field
-          if (key !== "_id" && key !== "Tr_teknis_work_order_images") {
-            acc[`Tr_teknis_work_order_terpakai.$[elem].${key}`] = value;
-          }
-          return acc;
-        }, {}),
+          "Tr_teknis_work_order_terpakai.$[elem].Tr_teknis_work_order_images":
+            workOrderImages.Tr_teknis_work_order_images, // Update image
+          ...Object.entries(updates).reduce((acc, [key, value]) => {
+            // Avoid overwriting the _id field
+            if (key !== "_id" && key !== "Tr_teknis_work_order_images") {
+              acc[`Tr_teknis_work_order_terpakai.$[elem].${key}`] = value;
+            }
+            return acc;
+          }, {}),
         },
       },
       {
@@ -724,13 +731,18 @@ const updateTrTeknis = async (req, res) => {
 
 const getBonPrefix = async (req, res) => {
   try {
-    const { type, date } = req.params;
+    const { type, date, domain } = req.params;
+    
+    // Create a filter object dynamically
+    const newDomain = await findByHierarchyAndDomain('',domain, 1)
+    const filter = { companyCode: newDomain };
 
     // Buat prefix berdasarkan parameter `type` dan `date`
     const prefix = `${type}/${date}`;
 
     // Cari semua dokumen yang memiliki prefix sesuai di database
     const data = await Tr_teknis.find({
+      ...filter,
       Tr_teknis_logistik_id: { $regex: `^${prefix}` },
     });
 
@@ -768,6 +780,7 @@ module.exports = {
   getTrTeknis,
   getTrTeknisEvident,
   getTrTeknisById,
+  getAllWorkOrders,
   getTrTeknisEvidentById,
   createTrTeknis,
   createTrTeknisGambar,

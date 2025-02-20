@@ -51,6 +51,9 @@ const ItemSchema = mongoose.Schema(
     },
     companyName: {
       type: String
+    },
+    companyCode: {
+      type: Array
     }
 },
   {

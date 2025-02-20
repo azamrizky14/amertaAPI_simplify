@@ -43,8 +43,14 @@ const Tr_teknisSchema = mongoose.Schema({
     // Tr_teknis_keterangan: {
     //     type: String
     // },
-    Tr_teknis_domain: {
+    Tr_teknis_company: {
         type: String,
+    },
+    companyName: {
+      type: String
+    },
+    companyCode: {
+      type: Array
     },
     Tr_teknis_created: {
         type: String,

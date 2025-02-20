@@ -16,7 +16,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage })
 // GET
-router.get("/getAllItem/:domain/:deleted?", itemController.getMasterItem);
+router.get("/getAllItem/:domain/:hierarchy/:deleted?", itemController.getMasterItem);
 router.get("/getItemById/:id", itemController.getMasterItemId);
 
 // POST

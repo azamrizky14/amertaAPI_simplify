@@ -1,11 +1,15 @@
 const Item = require("../models/itemModels.js");
+
+const { findByHierarchyAndDomain } = require("../utils/hierarchyAndDomain");
+
 // GET BY DOMAIN
 const getMasterItem = async (req, res) => {
   try {
-    const { domain, deleted } = req.params;
+    const { domain, hierarchy, deleted } = req.params;
 
     // Create a filter object dynamically
-    const filter = { companyName: domain };
+    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 2)
+    const filter = { companyCode: newDomain };
 
     // Add optional filters if provided
     if (deleted) filter.item_deleted = deleted;
@@ -72,6 +76,8 @@ const createMasterItemGambar = async (req, res) => {
       newData.item_bundle = JSON.parse(newData.item_bundle);
       newData.item_harga = JSON.parse(newData.item_harga);
       newData.item_konversi = JSON.parse(newData.item_konversi);
+      newData.companyCode = JSON.parse(newData.companyCode);
+      newData.item_detail = {}
     } catch (error) {
       console.error('Error parsing JSON fields:', error);
       throw new Error('Invalid JSON format in input');
@@ -80,7 +86,7 @@ const createMasterItemGambar = async (req, res) => {
     if (req.file && req.file.fieldname === 'item_gambar') {
       newData.item_gambar = req.file.filename;
     }
-    newData.item_detail = {item_detail_stock: []}
+    newData.item_detail = {item_detail_price: []}
     await newData.save();
     res.status(201).json({ message: 'Data Item Tersimpan' });
   } catch (error) {
@@ -127,7 +133,7 @@ const updateMasterItemGambar = async (req, res) => {
     }
 
     // Optional: Update other fields like `item_detail` if needed
-    existingItem.item_detail = existingItem.item_detail || { item_detail_stock: [] };
+    existingItem.item_detail = existingItem.item_detail || { item_detail_price: [] };
 
     // Save the updated item
     await existingItem.save();

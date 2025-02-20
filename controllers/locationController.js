@@ -1,12 +1,14 @@
   const Location = require("../models/locationModels.js");
+
+  const { findByHierarchyAndDomain } = require("../utils/hierarchyAndDomain");
   // GET BY DOMAIN
   const getMasterLocation = async (req, res) => {
     try {
-      const { domain, deleted } = req.params;
-
-      // Create a filter object dynamicallysz
-      const filter = { companyName: domain };  
-
+      const { domain, hierarchy, deleted } = req.params;
+  
+      // Create a filter object dynamically
+      const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1)
+      const filter = { companyCode: newDomain };
       // Add optional filters if provided
       if (deleted) filter.lokasi_deleted = deleted;
 

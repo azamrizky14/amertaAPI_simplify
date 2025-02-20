@@ -14,6 +14,7 @@ const {
     updateTrTeknisGambar,
     updateTrTeknisEvidentById,
     getBonPrefix,
+    getAllWorkOrders,
     getTrTeknisEvident
 } = require('../controllers/Tr_teknis.controller.js');
 // / Multer storage configuration
@@ -30,11 +31,12 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage })
     // ----
 
-router.get("/Trteknis/getdata/:domain/:deleted?/:type?/:status?", getTrTeknis);
-router.get("/Trteknis/getdataEvident/:domain/:deleted?/:type?/:status?", getTrTeknisEvident);
+router.get("/Trteknis/getTotalData/:domain/:hierarchy/:type/:month?", getAllWorkOrders);
+router.get("/Trteknis/getdata/:domain/:hierarchy/:deleted?/:type?/:status?", getTrTeknis);
+router.get("/Trteknis/getdataEvident/:domain/:hierarchy/:deleted?/:type?/:status?", getTrTeknisEvident);
 router.get("/Trteknis/getbyid/:id", getTrTeknisById);
 router.get("/Trteknis/getEvidentbyid/:logistikType/:logistikdate/:logistikNumber/:id", getTrTeknisEvidentById);
-router.get("/Trteknis/getBonPrefix/:type/:date", getBonPrefix);
+router.get("/Trteknis/getBonPrefix/:type/:date/:domain", getBonPrefix); 
 
 router.post("/Trteknis/create", createTrTeknis);
 router.post("/Trteknis/createimage", upload.any(), createTrTeknisGambar);
