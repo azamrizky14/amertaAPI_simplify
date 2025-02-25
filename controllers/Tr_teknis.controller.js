@@ -2,6 +2,59 @@ const Tr_teknis = require("../models/Tr_teknis.model");
 const mongoose = require("mongoose");
 const { findByHierarchyAndDomain } = require("../utils/hierarchyAndDomain");
 
+const fs = require("fs");
+const path = require("path");
+const axios = require("axios");
+const { v4: uuidv4 } = require("uuid");
+
+// Folder tempat penyimpanan gambar (harus sama dengan Multer)
+const uploadFolder = path.join(__dirname, "../images/admin_logistik");
+
+// Pastikan folder penyimpanan ada
+if (!fs.existsSync(uploadFolder)) {
+    fs.mkdirSync(uploadFolder, { recursive: true });
+}
+
+const downloadImage = async (imageUrl) => {
+  try {
+    const response = await axios({
+      url: imageUrl,
+      responseType: "arraybuffer",
+      headers: {
+        Accept: "image/*", // Pastikan server memahami permintaan sebagai gambar
+      },
+    });
+
+    // Ambil ekstensi file dari URL atau gunakan .jpg sebagai default
+    let fileExtension = path.extname(new URL(imageUrl).pathname);
+        // Jika ekstensi kosong atau tidak valid, coba deteksi dari `content-type`
+        if (!fileExtension || fileExtension === "") {
+          const contentType = response.headers["content-type"];
+          const extensionMap = {
+            "image/jpeg": ".jpg",
+            "image/png": ".png",
+            "image/gif": ".gif",
+            "image/webp": ".webp",
+            "image/svg+xml": ".svg",
+          };
+    
+          fileExtension = extensionMap[contentType] || ".jpg"; // Default ke .jpg jika tidak dikenali
+        }
+
+    // Buat nama file sesuai format Multer
+    const fileName = `${Date.now()}-TEKNIS-AMERTA-${uuidv4()}${fileExtension}`;
+    const filePath = path.join(uploadFolder, fileName);
+
+    // Simpan file yang diunduh
+    fs.writeFileSync(filePath, response.data);
+
+    return fileName; // Hanya kembalikan nama file untuk disimpan di database
+  } catch (error) {
+    console.error("Gagal mengunduh gambar:", imageUrl, error.message);
+    return null; // Jika gagal, return null agar tidak menyimpan data yang salah
+  }
+};
+
 // GET BY DOMAIN
 const getTrTeknis = async (req, res) => {
   try {
@@ -196,7 +249,7 @@ const createTrTeknisGambar = async (req, res) => {
   try {
     const { Tr_teknis_jenis, ...dynamicFields } = req.body;
 
-    // Define image fields based on Tr_teknis_jenis
+    // **1. Definisikan field gambar berdasarkan jenis pekerjaan**
     const imageFieldMapping = {
       PSB: [
         "Tr_teknis_evident_progress",
@@ -239,43 +292,38 @@ const createTrTeknisGambar = async (req, res) => {
       ],
     };
 
-    const imageFields = imageFieldMapping[Tr_teknis_jenis];
-    if (!imageFields) {
-      return res.status(400).json({ message: "Invalid Tr_teknis_jenis value" });
-    }
+    const imageFields = imageFieldMapping[Tr_teknis_jenis] || [];
+    const Tr_teknis_images = {};
 
-    // Initialize the Tr_teknis_images object with default empty strings
-    const Tr_teknis_images = Object.fromEntries(
-      imageFields.map((field) => [field, ""])
-    );
-
-    // Populate Tr_teknis_images based on uploaded files
+    // **2. Cek apakah ada file upload dari komputer (`req.files`)**
     if (req.files && req.files.length > 0) {
-      req.files.forEach((file) => {
-        const { fieldname, filename } = file;
-        if (imageFields.includes(fieldname)) {
-          Tr_teknis_images[fieldname] = filename;
+      req.files.forEach(file => {
+        if (imageFields.includes(file.fieldname)) {
+          Tr_teknis_images[file.fieldname] = file.filename;
         }
       });
     }
 
-    // Parse Tr_teknis_material_terpakai if it exists
-    let materialTerpakai = [];
-    if (dynamicFields.Tr_teknis_material_terpakai) {
-      materialTerpakai = JSON.parse(dynamicFields.Tr_teknis_material_terpakai);
+    // **3. Jika ada URL gambar di `req.body`, download gambar dan simpan di server**
+    for (const field of imageFields) {
+      if (!Tr_teknis_images[field] && dynamicFields[field]) {
+        const downloadedFileName = await downloadImage(dynamicFields[field]);
+        if (downloadedFileName) {
+          Tr_teknis_images[field] = downloadedFileName;
+        }
+      }
     }
 
-    // Create a new Tr_teknis document
+    // **4. Simpan data ke database**
     const newData = new Tr_teknis({
       ...dynamicFields,
       Tr_teknis_jenis,
       Tr_teknis_images,
-      Tr_teknis_material_terpakai: materialTerpakai,
     });
 
     await newData.save();
     res.status(201).json({
-      message: "Data created successfully with images if provided",
+      message: "Data created successfully with images",
       newData,
     });
   } catch (error) {
@@ -286,7 +334,6 @@ const createTrTeknisGambar = async (req, res) => {
 
 const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
   try {
-    // Destructure the relevant fields from the request body
     let {
       Tr_teknis_logistik_id,
       Tr_teknis_work_order_terpakai_material,
@@ -303,22 +350,20 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
       Tr_teknis_keterangan,
       Tr_teknis_created,
       Tr_teknis_tanggal,
-      ...dynamicFields // All other fields will be collected here
+      ...dynamicFields // Semua field lainnya akan dikumpulkan di sini
     } = req.body;
 
-    // Ensure Tr_teknis_work_order_terpakai_material is parsed correctly
+    // Pastikan `Tr_teknis_work_order_terpakai_material` adalah array
     let materialTerpakai = [];
     if (Tr_teknis_work_order_terpakai_material) {
       if (typeof Tr_teknis_work_order_terpakai_material === "string") {
-        // If it's a string, parse it as JSON
         materialTerpakai = JSON.parse(Tr_teknis_work_order_terpakai_material);
       } else if (Array.isArray(Tr_teknis_work_order_terpakai_material)) {
-        // If it's already an array, use it as-is
         materialTerpakai = Tr_teknis_work_order_terpakai_material;
       }
     }
 
-    // Define image fields based on Tr_teknis_jenis
+    // Mapping field gambar berdasarkan kategori
     const imageFieldMapping = {
       PSB: [
         "Tr_teknis_evident_progress",
@@ -363,35 +408,32 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
 
     const imageFields = imageFieldMapping[Tr_teknis_kategori];
     if (!imageFields) {
-      return res
-        .status(400)
-        .json({ message: "Invalid Tr_teknis_kategori value" });
+      return res.status(400).json({ message: "Invalid Tr_teknis_kategori value" });
     }
 
-    // Initialize the Tr_teknis_images object with default empty strings
-    const Tr_teknis_images = Object.fromEntries(
-      imageFields.map((field) => [field, ""])
-    );
+    // Inisialisasi objek untuk menyimpan gambar
+    const Tr_teknis_images = {};
 
-    // Populate Tr_teknis_images based on uploaded files
+    // **1. Cek apakah ada file yang diunggah (`req.files`)**
     if (req.files && req.files.length > 0) {
       req.files.forEach((file) => {
-        const { fieldname, filename } = file;
-        if (imageFields.includes(fieldname)) {
-          Tr_teknis_images[fieldname] = filename;
+        if (imageFields.includes(file.fieldname)) {
+          Tr_teknis_images[file.fieldname] = file.filename;
         }
       });
     }
 
-    // Check if each field in imageFields is present in the request and if it has a file
-    imageFields.forEach((field) => {
-      if (!req.files || !req.files.some((file) => file.fieldname === field)) {
-        // If no file is uploaded for the field, set it to empty string
-        Tr_teknis_images[field] = "";
+    // **2. Cek apakah ada URL gambar di `req.body`, download jika ada**
+    for (const field of imageFields) {
+      if (!Tr_teknis_images[field] && dynamicFields[field]) {
+        const downloadedFileName = await downloadImage(dynamicFields[field]);
+        if (downloadedFileName) {
+          Tr_teknis_images[field] = downloadedFileName;
+        }
       }
-    });
+    }
 
-    // Find the record by Tr_teknis_logistik_id
+    // **3. Cari data berdasarkan `Tr_teknis_logistik_id`**
     const existingData = await Tr_teknis.findOne({ Tr_teknis_logistik_id });
     if (!existingData) {
       return res.status(404).json({ message: "Record not found" });
@@ -400,9 +442,9 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
       Tr_teknis_team = JSON.parse(Tr_teknis_team);
     }
 
-    // Prepare the data to be saved inside the Tr_teknis_work_order_terpakai field
+    // **4. Siapkan data untuk disimpan ke `Tr_teknis_work_order_terpakai`**
     const workOrderData = {
-      _id: new mongoose.Types.ObjectId(), // Generate a new ObjectId
+      _id: new mongoose.Types.ObjectId(),
       Tr_teknis_pelanggan_id,
       Tr_teknis_kategori,
       Tr_teknis_pelanggan_nama,
@@ -418,28 +460,23 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
     };
 
     if (Tr_teknis_kategori === "MT") {
-      (workOrderData.Tr_teknis_trouble = Tr_teknis_trouble),
-        (workOrderData.Tr_teknis_action = Tr_teknis_action);
+      workOrderData.Tr_teknis_trouble = Tr_teknis_trouble;
+      workOrderData.Tr_teknis_action = Tr_teknis_action;
     }
 
-    // Add other fields to the data to be updated using dynamicFields
+    // **5. Update data dengan work order baru**
     const updatedData = {
-      ...existingData.toObject(), // Preserve existing data
-      ...dynamicFields, // Add all dynamic fields passed in the request
+      ...existingData.toObject(),
+      ...dynamicFields,
       Tr_teknis_work_order_terpakai: [
         ...existingData.Tr_teknis_work_order_terpakai,
         workOrderData,
-      ], // Add the new work order data
+      ],
     };
 
-    // Save the updated data
-    const updatedRecord = await Tr_teknis.findByIdAndUpdate(
-      existingData._id,
-      updatedData,
-      { new: true }
-    );
+    // **6. Simpan perubahan ke database**
+    const updatedRecord = await Tr_teknis.findByIdAndUpdate(existingData._id, updatedData, { new: true });
 
-    // Send back a success response
     res.status(200).json({
       message: "Data updated successfully",
       updatedData: updatedRecord,
@@ -453,41 +490,50 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
 const updateTrTeknisEvidentById = async (req, res) => {
   try {
     const { logistikType, logistikdate, logistikNumber, id } = req.params;
-
     const objectId = new mongoose.Types.ObjectId(id);
-
-    // Construct the `Tr_teknis_logistik_id` from route parameters
     const Tr_teknis_logistik_id = `${logistikType}/${logistikdate}/${logistikNumber}`;
 
-    // Debugging: Check if the document exists
+    // Debug: Cek apakah dokumen ada
     const documentExists = await Tr_teknis.findOne({
       Tr_teknis_logistik_id,
       "Tr_teknis_work_order_terpakai._id": objectId,
     });
 
     if (!documentExists) {
-      return res.status(404).json({ message: "tes" });
+      return res.status(404).json({ message: "Data tidak ditemukan" });
     }
 
-    // Parse form data and initialize variables
+    // Parse form data
     const updates = { ...req.body };
+
+    // Cari work order berdasarkan ID
     let workOrderImages = documentExists.Tr_teknis_work_order_terpakai.find(
-      (x) => (x.id = id)
+      (x) => x._id.toString() === id
     );
 
-    // Parse `Tr_teknis_team` and `Tr_teknis_work_order_terpakai_material`
-    if (updates.Tr_teknis_team) {
-      updates.Tr_teknis_team = JSON.parse(updates.Tr_teknis_team);
-      if (typeof updates.Tr_teknis_team === String)
-        updates.Tr_teknis_team = JSON.parse(updates.Tr_teknis_team);
-    }
-    if (updates.Tr_teknis_work_order_terpakai_material) {
-      updates.Tr_teknis_work_order_terpakai_material = JSON.parse(
-        updates.Tr_teknis_work_order_terpakai_material
-      );
+    if (!workOrderImages) {
+      return res.status(404).json({ message: "Work order tidak ditemukan" });
     }
 
-    // Define image fields based on Tr_teknis_kategori
+    // Parse JSON jika diperlukan
+    if (updates.Tr_teknis_team) {
+      try {
+        updates.Tr_teknis_team = JSON.parse(updates.Tr_teknis_team);
+      } catch (error) {
+        return res.status(400).json({ message: "Format Tr_teknis_team tidak valid" });
+      }
+    }
+    if (updates.Tr_teknis_work_order_terpakai_material) {
+      try {
+        updates.Tr_teknis_work_order_terpakai_material = JSON.parse(
+          updates.Tr_teknis_work_order_terpakai_material
+        );
+      } catch (error) {
+        return res.status(400).json({ message: "Format Tr_teknis_work_order_terpakai_material tidak valid" });
+      }
+    }
+
+    // Daftar field yang valid berdasarkan kategori
     const imageFieldMapping = {
       PSB: [
         "Tr_teknis_evident_progress",
@@ -531,72 +577,64 @@ const updateTrTeknisEvidentById = async (req, res) => {
         "Tr_teknis_evident_marking_dc_end",
       ],
     };
+
     const validImageFields = imageFieldMapping[updates.Tr_teknis_kategori];
     if (!validImageFields) {
-      return res
-        .status(400)
-        .json({ message: "Invalid Tr_teknis_kategori value" });
+      return res.status(400).json({ message: "Kategori tidak valid" });
     }
-    // Process uploaded files
+
+    // Proses gambar yang diunggah
     if (req.files && req.files.length > 0) {
       req.files.forEach((file) => {
         const { fieldname, filename } = file;
         if (validImageFields.includes(fieldname)) {
-          workOrderImages.Tr_teknis_work_order_images[fieldname] = filename; // Add or overwrite image field
+          workOrderImages.Tr_teknis_work_order_images[fieldname] = filename;
         }
       });
     }
-    // Ensure all valid image fields exist in `workOrderImages`
-    validImageFields.forEach((key) => {
-      if (updates[key] instanceof String && updates[key]) {
-        workOrderImages.Tr_teknis_work_order_images[key] = updates[key];
+
+    // Proses gambar yang berupa URL
+    for (const key of validImageFields) {
+      if (updates[key] && typeof updates[key] === "string" && updates[key].startsWith("http")) {
+        const fileName = await downloadImage(updates[key]);
+        if (fileName) {
+          workOrderImages.Tr_teknis_work_order_images[key] = fileName;
+        }
       } else if (updates[key] === "" || updates[key] === null) {
         workOrderImages.Tr_teknis_work_order_images[key] = "";
-      } else if (updates[key] instanceof Array) {
-        workOrderImages.Tr_teknis_work_order_images[key] = updates[key][0];
       }
       delete updates[key];
-    });
+    }
 
-    // Update the specific work order inside the array
+    // Update dokumen
     const updatedRecord = await Tr_teknis.findOneAndUpdate(
       {
-        Tr_teknis_logistik_id, // Match the document with this ID
-        "Tr_teknis_work_order_terpakai._id": objectId, // Match the array element with this ID
+        Tr_teknis_logistik_id,
+        "Tr_teknis_work_order_terpakai._id": objectId,
       },
       {
         $set: {
           "Tr_teknis_work_order_terpakai.$[elem].Tr_teknis_work_order_images":
-            workOrderImages.Tr_teknis_work_order_images, // Update image
-          ...Object.entries(updates).reduce((acc, [key, value]) => {
-            // Avoid overwriting the _id field
-            if (key !== "_id" && key !== "Tr_teknis_work_order_images") {
-              acc[`Tr_teknis_work_order_terpakai.$[elem].${key}`] = value;
-            }
-            return acc;
-          }, {}),
+            workOrderImages.Tr_teknis_work_order_images,
+          ...Object.fromEntries(
+            Object.entries(updates).filter(([key]) => key !== "_id")
+          ),
         },
       },
       {
-        new: true, // Return the updated document
-        arrayFilters: [{ "elem._id": objectId }], // Filter for the specific array element
+        new: true,
+        arrayFilters: [{ "elem._id": objectId }],
       }
     );
+
     if (!updatedRecord) {
-      return res
-        .status(404)
-        .json({ message: "Record or work order not found" });
+      return res.status(404).json({ message: "Data tidak ditemukan" });
     }
 
-    res.status(200).json({
-      message: "Work order updated successfully",
-      updatedData: updatedRecord,
-    });
+    res.status(200).json({ message: "Data berhasil diperbarui", updatedData: updatedRecord });
   } catch (error) {
-    console.error("Error updating evident by ID:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred while updating the work order" });
+    console.error("Error:", error);
+    res.status(500).json({ message: "Terjadi kesalahan saat update" });
   }
 };
 

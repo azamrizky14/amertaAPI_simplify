@@ -40,9 +40,6 @@ const Tr_teknisSchema = mongoose.Schema({
     // Tr_teknis_pelanggan_server: {
     //     type: String,
     // },
-    // Tr_teknis_keterangan: {
-    //     type: String
-    // },
     Tr_teknis_company: {
         type: String,
     },
