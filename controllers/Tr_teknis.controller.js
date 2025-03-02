@@ -50,7 +50,7 @@ const downloadImage = async (imageUrl) => {
 
     return fileName; // Hanya kembalikan nama file untuk disimpan di database
   } catch (error) {
-    console.error("Gagal mengunduh gambar:", imageUrl, error.message);
+    // console.error("Gagal mengunduh gambar:", imageUrl, error.message);
     return null; // Jika gagal, return null agar tidak menyimpan data yang salah
   }
 };
@@ -342,7 +342,6 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
       Tr_teknis_trouble,
       Tr_teknis_action,
       Tr_teknis_team,
-
       Tr_teknis_pelanggan_id,
       Tr_teknis_pelanggan_nama,
       Tr_teknis_pelanggan_server,
@@ -350,10 +349,9 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
       Tr_teknis_keterangan,
       Tr_teknis_created,
       Tr_teknis_tanggal,
-      ...dynamicFields // Semua field lainnya akan dikumpulkan di sini
+      ...dynamicFields
     } = req.body;
 
-    // Pastikan `Tr_teknis_work_order_terpakai_material` adalah array
     let materialTerpakai = [];
     if (Tr_teknis_work_order_terpakai_material) {
       if (typeof Tr_teknis_work_order_terpakai_material === "string") {
@@ -363,86 +361,128 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
       }
     }
 
-    // Mapping field gambar berdasarkan kategori
-    const imageFieldMapping = {
-      PSB: [
-        "Tr_teknis_evident_progress",
-        "Tr_teknis_evident_odp_depan",
-        "Tr_teknis_evident_odp_dalam",
-        "Tr_teknis_evident_redaman_ont",
-        "Tr_teknis_evident_redaman_odp",
-        "Tr_teknis_evident_marking_dc_start",
-        "Tr_teknis_evident_marking_dc_end",
-        "Tr_teknis_evident_kertas_psb",
-        "Tr_teknis_evident_review_google",
-        "Tr_teknis_evident_speed_test",
-        "Tr_teknis_evident_pelanggan_dengan_pelanggan",
-        "Tr_teknis_evident_pelanggan_depan_rumah",
-      ],
-      MT: [
-        "Tr_teknis_redaman_sebelum",
-        "Tr_teknis_evident_kendala_1",
-        "Tr_teknis_evident_kendala_2",
-        "Tr_teknis_evident_modem_sebelum",
-        "Tr_teknis_evident_modem_sesudah",
-        "Tr_teknis_evident_proses_sambung",
-        "Tr_teknis_redaman_sesudah",
-        "Tr_teknis_redaman_out_odp",
-        "Tr_teknis_redaman_pelanggan",
-        "Tr_teknis_evident_marking_dc_start",
-        "Tr_teknis_evident_marking_dc_end",
-      ],
-      INFRA: [
-        "Tr_teknis_redaman_sebelum",
-        "Tr_teknis_evident_kendala_1",
-        "Tr_teknis_evident_kendala_2",
-        "Tr_teknis_evident_kendala_3",
-        "Tr_teknis_evident_proses_sambung",
-        "Tr_teknis_redaman_sesudah",
-        "Tr_teknis_redaman_out_odp",
-        "Tr_teknis_redaman_pelanggan",
-        "Tr_teknis_evident_marking_dc_start",
-        "Tr_teknis_evident_marking_dc_end",
-      ],
-    };
-
-    const imageFields = imageFieldMapping[Tr_teknis_kategori];
-    if (!imageFields) {
-      return res.status(400).json({ message: "Invalid Tr_teknis_kategori value" });
-    }
-
-    // Inisialisasi objek untuk menyimpan gambar
-    const Tr_teknis_images = {};
-
-    // **1. Cek apakah ada file yang diunggah (`req.files`)**
-    if (req.files && req.files.length > 0) {
-      req.files.forEach((file) => {
-        if (imageFields.includes(file.fieldname)) {
-          Tr_teknis_images[file.fieldname] = file.filename;
-        }
+    const imageFieldsInfra = [
+      "Tr_teknis_evident_start",
+      "Tr_teknis_evident_progress",
+      "Tr_teknis_evident_end"
+    ];
+    let Tr_teknis_images = {};
+    if (Tr_teknis_kategori === "INFRA") {
+      imageFieldsInfra.forEach(field => {
+        Tr_teknis_images[field] = [];
       });
-    }
 
-    // **2. Cek apakah ada URL gambar di `req.body`, download jika ada**
-    for (const field of imageFields) {
-      if (!Tr_teknis_images[field] && dynamicFields[field]) {
-        const downloadedFileName = await downloadImage(dynamicFields[field]);
-        if (downloadedFileName) {
-          Tr_teknis_images[field] = downloadedFileName;
+      if (dynamicFields) {
+        Object.keys(Tr_teknis_images).forEach(key => {
+          if (dynamicFields[key]) {
+            // Ubah item kosong jadi "" lalu push ke data2[key]
+            Tr_teknis_images[key].push(...dynamicFields[key].map(item => item ?? ""));
+          }
+        })
+      }
+
+      for (const field in Tr_teknis_images) {
+        if (Tr_teknis_images.hasOwnProperty(field) && Tr_teknis_images[field]) {
+          let images = Tr_teknis_images[field]; // Ambil array gambar
+          for (let i = 0; i < images.length; i++) {
+            let img = images[i];
+            if (typeof img === "string" && img.startsWith("http")) {
+              const downloadedFileName = await downloadImage(img);
+              if (downloadedFileName) {
+                Tr_teknis_images[field][i] = downloadedFileName; // Ganti URL dengan nama file lokal
+              }
+            }
+          }
+        }
+      }
+
+      if (req.files && req.files.length > 0) {
+        req.files.forEach((file) => {
+      
+          // Gunakan regex untuk menangkap nama field dan index
+          const match = file.fieldname.match(/^(.*?)\[(\d+)\]$/);
+          if (match) {
+            const fieldName = match[1]; // Nama field, misalnya "Tr_teknis_evident_start"
+            const index = parseInt(match[2], 10); // Index array, misalnya 0
+      
+            // Pastikan field termasuk dalam daftar imageFieldsInfra
+            if (imageFieldsInfra.includes(fieldName)) {
+              // Jika field belum ada di Tr_teknis_images, inisialisasi sebagai array
+              if (!Tr_teknis_images[fieldName]) {
+                Tr_teknis_images[fieldName] = [];
+              }
+      
+              // Simpan file ke index yang sesuai
+              Tr_teknis_images[fieldName][index] = file.filename;
+            }
+          }
+        });
+      }
+    } else {
+      const imageFieldMapping = {
+        PSB: [
+          "Tr_teknis_evident_progress",
+          "Tr_teknis_evident_odp_depan",
+          "Tr_teknis_evident_odp_dalam",
+          "Tr_teknis_evident_redaman_ont",
+          "Tr_teknis_evident_redaman_odp",
+          "Tr_teknis_evident_marking_dc_start",
+          "Tr_teknis_evident_marking_dc_end",
+          "Tr_teknis_evident_kertas_psb",
+          "Tr_teknis_evident_review_google",
+          "Tr_teknis_evident_speed_test",
+          "Tr_teknis_evident_pelanggan_dengan_pelanggan",
+          "Tr_teknis_evident_pelanggan_depan_rumah",
+        ],
+        MT: [
+          "Tr_teknis_redaman_sebelum",
+          "Tr_teknis_evident_kendala_1",
+          "Tr_teknis_evident_kendala_2",
+          "Tr_teknis_evident_modem_sebelum",
+          "Tr_teknis_evident_modem_sesudah",
+          "Tr_teknis_evident_proses_sambung",
+          "Tr_teknis_redaman_sesudah",
+          "Tr_teknis_redaman_out_odp",
+          "Tr_teknis_redaman_pelanggan",
+          "Tr_teknis_evident_marking_dc_start",
+          "Tr_teknis_evident_marking_dc_end",
+        ],
+      };
+
+      const imageFields = imageFieldMapping[Tr_teknis_kategori];
+      if (!imageFields) {
+        return res.status(400).json({ message: "Invalid Tr_teknis_kategori value" });
+      }
+
+      if (req.files && req.files.length > 0) {
+        req.files.forEach((file) => {
+          if (imageFields.includes(file.fieldname)) {
+            Tr_teknis_images[file.fieldname] = file.filename;
+          }
+        });
+      }
+
+      for (const field of imageFields) {
+        if (!Tr_teknis_images[field] && dynamicFields[field]) {
+          const downloadedFileName = await downloadImage(dynamicFields[field]);
+          if (downloadedFileName) {
+            Tr_teknis_images[field] = downloadedFileName;
+          }
         }
       }
     }
 
-    // **3. Cari data berdasarkan `Tr_teknis_logistik_id`**
     const existingData = await Tr_teknis.findOne({ Tr_teknis_logistik_id });
     if (!existingData) {
       return res.status(404).json({ message: "Record not found" });
     }
+
     if (Tr_teknis_team) {
       Tr_teknis_team = JSON.parse(Tr_teknis_team);
     }
 
-    // **4. Siapkan data untuk disimpan ke `Tr_teknis_work_order_terpakai`**
+    let updatedRecord;
+    
     const workOrderData = {
       _id: new mongoose.Types.ObjectId(),
       Tr_teknis_pelanggan_id,
@@ -458,25 +498,18 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
       Tr_teknis_work_order_terpakai_material: materialTerpakai,
       Tr_teknis_work_order_images: Tr_teknis_images,
     };
-
+    
     if (Tr_teknis_kategori === "MT") {
       workOrderData.Tr_teknis_trouble = Tr_teknis_trouble;
       workOrderData.Tr_teknis_action = Tr_teknis_action;
     }
-
-    // **5. Update data dengan work order baru**
-    const updatedData = {
-      ...existingData.toObject(),
-      ...dynamicFields,
-      Tr_teknis_work_order_terpakai: [
-        ...existingData.Tr_teknis_work_order_terpakai,
-        workOrderData,
-      ],
-    };
-
-    // **6. Simpan perubahan ke database**
-    const updatedRecord = await Tr_teknis.findByIdAndUpdate(existingData._id, updatedData, { new: true });
-
+    
+    updatedRecord = await Tr_teknis.findByIdAndUpdate(
+      existingData._id,
+      { $push: { Tr_teknis_work_order_terpakai: workOrderData } },
+      { new: true }
+    );
+    
     res.status(200).json({
       message: "Data updated successfully",
       updatedData: updatedRecord,

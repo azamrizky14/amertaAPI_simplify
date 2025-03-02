@@ -59,8 +59,8 @@
         )
         .then(() => {
             console.log("Connected to database!");
-            app.listen(4000, () => {
-                console.log("Server is running on port 4000");
+            app.listen(5202, () => {
+                console.log("Server is running on port 5202");
             });
         })
         .catch((error) => {
