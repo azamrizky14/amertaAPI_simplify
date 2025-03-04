@@ -566,79 +566,129 @@ const updateTrTeknisEvidentById = async (req, res) => {
       }
     }
 
-    // Daftar field yang valid berdasarkan kategori
-    const imageFieldMapping = {
-      PSB: [
-        "Tr_teknis_evident_progress",
-        "Tr_teknis_evident_odp_depan",
-        "Tr_teknis_evident_odp_dalam",
-        "Tr_teknis_evident_ont_depan",
-        "Tr_teknis_evident_ont_belakang",
-        "Tr_teknis_evident_redaman_ont",
-        "Tr_teknis_evident_redaman_odp",
-        "Tr_teknis_evident_marking_dc_start",
-        "Tr_teknis_evident_marking_dc_end",
-        "Tr_teknis_evident_kertas_psb",
-        "Tr_teknis_evident_review_google",
-        "Tr_teknis_evident_speed_test",
-        "Tr_teknis_evident_pelanggan_dengan_pelanggan",
-        "Tr_teknis_evident_pelanggan_depan_rumah",
-      ],
-      MT: [
-        "Tr_teknis_redaman_sebelum",
-        "Tr_teknis_evident_kendala_1",
-        "Tr_teknis_evident_kendala_2",
-        "Tr_teknis_evident_modem_sebelum",
-        "Tr_teknis_evident_modem_sesudah",
-        "Tr_teknis_evident_proses_sambung",
-        "Tr_teknis_redaman_sesudah",
-        "Tr_teknis_redaman_out_odp",
-        "Tr_teknis_redaman_pelanggan",
-        "Tr_teknis_evident_marking_dc_start",
-        "Tr_teknis_evident_marking_dc_end",
-      ],
-      INFRA: [
-        "Tr_teknis_redaman_sebelum",
-        "Tr_teknis_evident_kendala_1",
-        "Tr_teknis_evident_kendala_2",
-        "Tr_teknis_evident_kendala_3",
-        "Tr_teknis_evident_proses_sambung",
-        "Tr_teknis_redaman_sesudah",
-        "Tr_teknis_redaman_out_odp",
-        "Tr_teknis_redaman_pelanggan",
-        "Tr_teknis_evident_marking_dc_start",
-        "Tr_teknis_evident_marking_dc_end",
-      ],
-    };
-
-    const validImageFields = imageFieldMapping[updates.Tr_teknis_kategori];
-    if (!validImageFields) {
-      return res.status(400).json({ message: "Kategori tidak valid" });
-    }
-
-    // Proses gambar yang diunggah
-    if (req.files && req.files.length > 0) {
-      req.files.forEach((file) => {
-        const { fieldname, filename } = file;
-        if (validImageFields.includes(fieldname)) {
-          workOrderImages.Tr_teknis_work_order_images[fieldname] = filename;
-        }
+    
+    const imageFieldsInfra = [
+      "Tr_teknis_evident_start",
+      "Tr_teknis_evident_progress",
+      "Tr_teknis_evident_end"
+    ];
+    let Tr_teknis_images = {};
+    if (updates.Tr_teknis_kategori === "INFRA") {
+      imageFieldsInfra.forEach(field => {
+        Tr_teknis_images[field] = [];
       });
-    }
+      if (updates) {
+        // Loop untuk mencari key yang mengandung "Tr_teknis_work_order_images."
+        Object.keys(updates).forEach((fullKey) => {
+          if (fullKey.startsWith("Tr_teknis_work_order_images.")) {
+            // Ambil bagian setelah "Tr_teknis_work_order_images."
+            const key = fullKey.replace("Tr_teknis_work_order_images.", "");
+      
+            // Pastikan key ini ada dalam Tr_teknis_images
+            if (Tr_teknis_images.hasOwnProperty(key)) {
+              // Tambahkan data dari updates ke dalam Tr_teknis_images
+              Tr_teknis_images[key].push(...updates[fullKey].map(item => item ?? ""));
+            }
+          }
+        });
+      }    
+      
 
-    // Proses gambar yang berupa URL
-    for (const key of validImageFields) {
-      if (updates[key] && typeof updates[key] === "string" && updates[key].startsWith("http")) {
-        const fileName = await downloadImage(updates[key]);
-        if (fileName) {
-          workOrderImages.Tr_teknis_work_order_images[key] = fileName;
+      for (const field in Tr_teknis_images) {
+        if (Tr_teknis_images.hasOwnProperty(field) && Tr_teknis_images[field]) {
+          let images = Tr_teknis_images[field]; // Ambil array gambar
+          for (let i = 0; i < images.length; i++) {
+            let img = images[i];
+            if (typeof img === "string" && img.startsWith("http")) {
+              const downloadedFileName = await downloadImage(img);
+              if (downloadedFileName) {
+                Tr_teknis_images[field][i] = downloadedFileName; // Ganti URL dengan nama file lokal
+              }
+            }
+          }
         }
-      } else if (updates[key] === "" || updates[key] === null) {
-        workOrderImages.Tr_teknis_work_order_images[key] = "";
       }
-      delete updates[key];
-    }
 
+      if (req.files && req.files.length > 0) {
+        req.files.forEach((file) => {
+      
+          // Hapus prefix "Tr_teknis_work_order_images."
+          const cleanedFieldname = file.fieldname.replace(/^Tr_teknis_work_order_images\./, "");
+      
+          // Gunakan regex untuk menangkap nama field dan index
+          const match = cleanedFieldname.match(/^(.*?)\[(\d+)\]$/);
+          if (match) {
+            const fieldName = match[1]; // Nama field, misalnya "Tr_teknis_evident_start"
+            const index = parseInt(match[2], 10); // Index array, misalnya 0
+      
+            // Pastikan field termasuk dalam daftar imageFieldsInfra
+            if (imageFieldsInfra.includes(fieldName)) {
+              // Jika field belum ada di Tr_teknis_images, inisialisasi sebagai array
+              if (!Tr_teknis_images[fieldName]) {
+                Tr_teknis_images[fieldName] = [];
+              }
+      
+              // Simpan file ke index yang sesuai
+              Tr_teknis_images[fieldName][index] = file.filename;
+            }
+          }
+        });
+      }      
+      
+      updates.Tr_teknis_images = Tr_teknis_images
+    } else {
+      const imageFieldMapping = {
+        PSB: [
+          "Tr_teknis_evident_progress",
+          "Tr_teknis_evident_odp_depan",
+          "Tr_teknis_evident_odp_dalam",
+          "Tr_teknis_evident_redaman_ont",
+          "Tr_teknis_evident_redaman_odp",
+          "Tr_teknis_evident_marking_dc_start",
+          "Tr_teknis_evident_marking_dc_end",
+          "Tr_teknis_evident_kertas_psb",
+          "Tr_teknis_evident_review_google",
+          "Tr_teknis_evident_speed_test",
+          "Tr_teknis_evident_pelanggan_dengan_pelanggan",
+          "Tr_teknis_evident_pelanggan_depan_rumah",
+        ],
+        MT: [
+          "Tr_teknis_redaman_sebelum",
+          "Tr_teknis_evident_kendala_1",
+          "Tr_teknis_evident_kendala_2",
+          "Tr_teknis_evident_modem_sebelum",
+          "Tr_teknis_evident_modem_sesudah",
+          "Tr_teknis_evident_proses_sambung",
+          "Tr_teknis_redaman_sesudah",
+          "Tr_teknis_redaman_out_odp",
+          "Tr_teknis_redaman_pelanggan",
+          "Tr_teknis_evident_marking_dc_start",
+          "Tr_teknis_evident_marking_dc_end",
+        ],
+      };
+
+      const imageFields = imageFieldMapping[Tr_teknis_kategori];
+      if (!imageFields) {
+        return res.status(400).json({ message: "Invalid Tr_teknis_kategori value" });
+      }
+
+      if (req.files && req.files.length > 0) {
+        req.files.forEach((file) => {
+          if (imageFields.includes(file.fieldname)) {
+            Tr_teknis_images[file.fieldname] = file.filename;
+          }
+        });
+      }
+
+      for (const field of imageFields) {
+        if (!Tr_teknis_images[field] && dynamicFields[field]) {
+          const downloadedFileName = await downloadImage(dynamicFields[field]);
+          if (downloadedFileName) {
+            Tr_teknis_images[field] = downloadedFileName;
+          }
+        }
+      }
+    }
     // Update dokumen
     const updatedRecord = await Tr_teknis.findOneAndUpdate(
       {
@@ -648,7 +698,7 @@ const updateTrTeknisEvidentById = async (req, res) => {
       {
         $set: {
           "Tr_teknis_work_order_terpakai.$[elem].Tr_teknis_work_order_images":
-            workOrderImages.Tr_teknis_work_order_images,
+          updates.Tr_teknis_images,
           ...Object.fromEntries(
             Object.entries(updates).filter(([key]) => key !== "_id")
           ),
