@@ -520,6 +520,7 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
   }
 };
 
+
 const updateTrTeknisEvidentById = async (req, res) => {
   try {
     const { logistikType, logistikdate, logistikNumber, id } = req.params;
@@ -634,8 +635,6 @@ const updateTrTeknisEvidentById = async (req, res) => {
           }
         });
       }      
-      
-      updates.Tr_teknis_images = Tr_teknis_images
     } else {
       const imageFieldMapping = {
         PSB: [
@@ -667,10 +666,21 @@ const updateTrTeknisEvidentById = async (req, res) => {
         ],
       };
 
-      const imageFields = imageFieldMapping[Tr_teknis_kategori];
+      const imageFields = imageFieldMapping[updates.Tr_teknis_kategori];
       if (!imageFields) {
         return res.status(400).json({ message: "Invalid Tr_teknis_kategori value" });
       }
+      imageFields.forEach(field => {
+        Tr_teknis_images[field] = "";
+      });
+      
+      if (updates) {
+        Object.keys(Tr_teknis_images).forEach((key) => {
+          if (updates.hasOwnProperty(key)) {
+            Tr_teknis_images[key] = updates[key];
+          }
+        });
+      }   
 
       if (req.files && req.files.length > 0) {
         req.files.forEach((file) => {
@@ -680,41 +690,53 @@ const updateTrTeknisEvidentById = async (req, res) => {
         });
       }
 
-      for (const field of imageFields) {
-        if (!Tr_teknis_images[field] && dynamicFields[field]) {
-          const downloadedFileName = await downloadImage(dynamicFields[field]);
-          if (downloadedFileName) {
-            Tr_teknis_images[field] = downloadedFileName;
+      
+      // Proses gambar yang berupa URL
+      for (const key of imageFields) {
+        if (updates[key] && typeof updates[key] === "string" && updates[key].startsWith("http")) {
+          const fileName = await downloadImage(updates[key]);
+          if (fileName) {
+            Tr_teknis_images[key] = fileName;
           }
+        } else if (updates[key] === "" || updates[key] === null) {
+          Tr_teknis_images[key] = "";
         }
+        delete updates[key];
       }
     }
-    // Update dokumen
-    const updatedRecord = await Tr_teknis.findOneAndUpdate(
-      {
+    
+    const filter = {
         Tr_teknis_logistik_id,
         "Tr_teknis_work_order_terpakai._id": objectId,
-      },
-      {
-        $set: {
-          "Tr_teknis_work_order_terpakai.$[elem].Tr_teknis_work_order_images":
-          updates.Tr_teknis_images,
-          ...Object.fromEntries(
-            Object.entries(updates).filter(([key]) => key !== "_id")
-          ),
-        },
-      },
-      {
-        new: true,
-        arrayFilters: [{ "elem._id": objectId }],
-      }
-    );
+};
+if (typeof updates.Tr_teknis_team === 'string') {
+  updates.Tr_teknis_team = JSON.parse(updates.Tr_teknis_team);
+}
+const updateQuery = {
+    $set: {
+      ...Object.fromEntries(
+        Object.entries(updates).filter(([key]) => key !== "_id" && key !== "Tr_teknis_images").map(([key, value]) => [
+          `Tr_teknis_work_order_terpakai.$[elem].${key}`,
+          value,
+        ])
+      )
+    },
+};
+console.log('data',Tr_teknis_images)
+const options = {
+      arrayFilters: [{ "elem._id": objectId }],
+      new: true,
+};
 
-    if (!updatedRecord) {
-      return res.status(404).json({ message: "Data tidak ditemukan" });
-    }
+    await Tr_teknis.updateOne(filter, updateQuery, options);
+    console.log('data success!')
+    const updatedRecord = await Tr_teknis.findOneAndUpdate(filter, {
+      $set: {
+        "Tr_teknis_work_order_terpakai.$[elem].Tr_teknis_work_order_images": Tr_teknis_images,
+      },
+    }, options);
 
-    res.status(200).json({ message: "Data berhasil diperbarui", updatedData: updatedRecord });
+    res.status(200).json({ message: "Gambar berhasil diperbarui", updatedData: updatedRecord });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "Terjadi kesalahan saat update" });
