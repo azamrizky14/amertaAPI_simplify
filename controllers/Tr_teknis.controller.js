@@ -722,14 +722,12 @@ const updateQuery = {
       )
     },
 };
-console.log('data',Tr_teknis_images)
 const options = {
       arrayFilters: [{ "elem._id": objectId }],
       new: true,
 };
 
     await Tr_teknis.updateOne(filter, updateQuery, options);
-    console.log('data success!')
     const updatedRecord = await Tr_teknis.findOneAndUpdate(filter, {
       $set: {
         "Tr_teknis_work_order_terpakai.$[elem].Tr_teknis_work_order_images": Tr_teknis_images,
