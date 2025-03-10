@@ -19,7 +19,8 @@ const findByHierarchyAndDomain = async (hierarchy, domain, limit) => {
     });
 
     // Check hierarchy and adjust the query accordinglys
-    if (hierarchy && parseFloat(hierarchy) > limit) {
+      
+        if (hierarchy && parseFloat(hierarchy) > limit) {
       return convertedDomain; // Cari dengan nilai tunggal
     } else {
       return { $in: convertedDomain }; // Gunakan $in untuk array
