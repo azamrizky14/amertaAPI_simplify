@@ -7,6 +7,7 @@ const {
     getTrTeknis,
     getTrTeknisById,
     getTrTeknisEvidentById,
+    getTrTeknisEvidentByMonth,
     createTrTeknis,
     createTrTeknisGambar,
     updateTrTeknisWorkOrderTerpakai,
@@ -34,6 +35,7 @@ const upload = multer({ storage: storage })
 router.get("/Trteknis/getTotalData/:domain/:hierarchy/:type/:month?", getAllWorkOrders);
 router.get("/Trteknis/getdata/:domain/:hierarchy/:deleted?/:type?/:status?", getTrTeknis);
 router.get("/Trteknis/getdataEvident/:domain/:hierarchy/:deleted?/:type?/:status?", getTrTeknisEvident);
+router.get("/Trteknis/getdataEvidentByMonth/:domain/:hierarchy/:deleted?/:type?/:month?", getTrTeknisEvidentByMonth);
 router.get("/Trteknis/getbyid/:id", getTrTeknisById);
 router.get("/Trteknis/getEvidentbyid/:logistikType/:logistikdate/:logistikNumber/:id", getTrTeknisEvidentById);
 router.get("/Trteknis/getBonPrefix/:type/:date/:domain", getBonPrefix); 

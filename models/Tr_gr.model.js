@@ -1,36 +1,36 @@
 const mongoose = require("mongoose");
 
-const Tr_poSchema = mongoose.Schema({
+const Tr_grSchema = mongoose.Schema({
+    Tr_gr_id: {
+        type: String,
+    },
     Tr_po_id: {
         type: String,
     },
-    Tr_po_tanggal: {
+    Tr_gr_created_date: {
         type: String,
     },
-    Tr_po_supplier: {
+    Tr_gr_receipt_date: {
         type: String,
     },
-    Tr_po_status: {
+    Tr_gr_item: {
+        type: Array,
+    },
+    Tr_gr_keterangan: {
+        type: String,   
+    },
+    Tr_gr_status: {
         // enum: ["open", "partial", "complete", "canceled"],
         type: String,
     },
-    Tr_po_lokasi: {
+    Tr_gr_deleted: {
         type: String,
     },
-    Tr_po_deleted: {
+    Tr_gr_image: {
         type: String,
     },
-    Tr_po_item: {
-        type: Array,
-    },
-    Tr_po_shipment: {
-        type: Object,
-    },
-    Tr_pp_item: {
-        type: Array,
-    },
-    Tr_po_keterangan: {
-        type: String,   
+    Tr_gr_no_resi: {
+        type: String,
     },
     companyName: {
         type: String,
@@ -38,10 +38,10 @@ const Tr_poSchema = mongoose.Schema({
     companyCode: {
         type: Array,
     },
-    Tr_po_created: {
+    Tr_gr_user_created: {
         type: String,
     },
-    Tr_po_user_created: {
+    Tr_gr_qa_status: {
         type: String,
     },
 }, {
@@ -49,6 +49,6 @@ const Tr_poSchema = mongoose.Schema({
 });
 
 
-const Tr_po = mongoose.model("Tr_po", Tr_poSchema);
+const Tr_gr = mongoose.model("Tr_gr", Tr_grSchema);
 
-module.exports = Tr_po;
+module.exports = Tr_gr;

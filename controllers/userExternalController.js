@@ -17,11 +17,11 @@ const UserExternal = require("../models/userExternalModels");
 async function getAllUsers(req, res) {
   try {
     // Retrieve all users from the database
-    const users = await UserExternal.find({ isDeleted: false });
+    const users = await UserExternal.find({ isDeleted: "N" });
     res.json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "External server error" });
   }
 }
 
@@ -30,7 +30,7 @@ async function getUserByRole(req, res) {
   try {
     const { companyName, userRole } = req.params;
     
-    const filter = { isDeleted: false, companyName: companyName };
+    const filter = { isDeleted: "N", companyName: companyName };
 
     // Add optional filters if provided
     if (userRole) filter.userRole = userRole;
@@ -40,7 +40,7 @@ async function getUserByRole(req, res) {
     res.json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "External server error" });
   }
 }
 
@@ -65,7 +65,7 @@ async function getUserById(req, res) {
     res.json(user); // Send the user data in the response
   } catch (error) {
     console.error("Error fetching user by ID:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "External server error" });
   }
 }
 
@@ -84,7 +84,7 @@ async function createUserOne(req, res) {
     res.status(201).json(newUser);
   } catch (error) {
     console.error("Error creating user:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "External server error" });
   }
 }
 
@@ -129,7 +129,7 @@ async function updateUserOne(req, res) {
     res.json(updatedUser); // Send the updated user data in the response
   } catch (error) {
     console.error("Error updating user:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "External server error" });
   }
 }
 
@@ -142,7 +142,6 @@ async function createUser(req, res) {
     if (user) {
       return res.status(401).json({ message: "Email Sudah Digunakan!" });
     }
-
     let data = req.body;
 
     // Check if a file is uploaded
@@ -151,7 +150,7 @@ async function createUser(req, res) {
         data: req.file.buffer, // Store file content as Buffer
         contentType: req.file.mimetype, // Store file MIME type
       };
-      data.imageName = req.file.originalname; // Store file name
+      data.imageName = req.file.filename; // Store file name
     }
     data.userAccess = JSON.parse(data.userAccess);
     data.companyCode = JSON.parse(data.companyCode);
@@ -160,56 +159,46 @@ async function createUser(req, res) {
     res.status(201).json(newCompany);
   } catch (error) {
     console.error("Error creating user:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "External server error" });
   }
 }
 
-// Controller method to update a company
 async function updateUser(req, res) {
   try {
     const userId = req.params._id;
     let data = req.body;
 
-    // Check if a file is uploaded
-    if (req.file) {
-      data.userImage = {
-        data: req.file.buffer, // Store file content as Buffer
-        contentType: req.file.mimetype, // Store file MIME type
-      };
-      data.imageName = req.file.originalname; // Store file name
-    } else {
-      // If no file is uploaded, delete the userImage property from data to avoid updating it
-      delete data.userImage;
-    }
-
-    data.userAccess = JSON.parse(data.userAccess);
-
-    // Parse and update companyCode as necessary
-    const originalCompanyCode = JSON.parse(data.companyCode);
-
-
-    data.companyCode = originalCompanyCode;
-
-    // Find and update the company with new data, incrementing the __v field
-    const updateUserExternal = await UserExternal.findByIdAndUpdate(
-      userId,
-      {
-        ...data,
-        $inc: { __v: 1 }
-      },
-      { new: true }
-    );
-
-    if (!updateUserExternal) {
+    // Ambil user berdasarkan ID
+    const user = await UserExternal.findById(userId);
+    if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json(updateUserExternal);
+    // Jika ada file yang diunggah, simpan datanya
+    if (req.file) {
+      user.userImage = {
+        data: req.file.buffer, // Simpan file sebagai Buffer
+        contentType: req.file.mimetype, // Simpan MIME type file
+      };
+      user.imageName = req.file.filename; // Simpan nama file
+    }
+
+    // Jika tidak ada file yang diunggah, jangan ubah userImage
+    data.userAccess = JSON.parse(data.userAccess);
+    user.companyCode = JSON.parse(data.companyCode);
+
+    // Update semua field lainnya dari `data`
+    Object.assign(user, data);
+
+    // Simpan perubahan (Mongoose otomatis meningkatkan __v)
+    await user.save();
+
+    res.status(200).json(user);
   } catch (error) {
     console.error("Error updating user:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "External server error" });
   }
-};
+}
 
 async function loginUser(req, res) {
   try {
@@ -259,7 +248,7 @@ async function loginUser(req, res) {
     res.json({ token, user: payload });
   } catch (error) {
     console.error("Error logging in:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "External server error" });
   }
 }
 
@@ -274,7 +263,7 @@ async function listByCompanyCode(req, res) {
     }
 
     // Initialize query with isDeleted condition
-    let query = { isDeleted: false };
+    let query = { isDeleted: "N" };
 
     // Check if companyCode equals [[0]]
     if (JSON.stringify(companyCode) !== JSON.stringify([[0]])) {
@@ -284,7 +273,7 @@ async function listByCompanyCode(req, res) {
 
     // Retrieve all companies that match the criteria, as plain JavaScript objects
     const userExternal = await UserExternal.find(query).lean();
-    // console.log('ini user internal', userExternal);
+    // console.log('ini user external', userExternal);
 
     // Remove 'userImage' property from each object in the result array
     const finalUser = userExternal.map(({ userImage, ...rest }) => rest);
@@ -292,7 +281,7 @@ async function listByCompanyCode(req, res) {
     res.json(finalUser);
   } catch (error) {
     console.error("Error fetching userExternal:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "External server error" });
   }
 }
 
