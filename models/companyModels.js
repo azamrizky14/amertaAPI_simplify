@@ -39,10 +39,7 @@ const companySchema = new mongoose.Schema({
     require: [true, "Please enter the creator"]
   },
   isDeleted: {
-    type: Boolean,
-    enum: [true, false],
-    default: false // true dan false
-  }
+    type: String  }
 }, {
   timestamps: true,
 });

@@ -95,7 +95,6 @@
     }
   };
   
-
   // CREATE 
   const createMasterLocation = async (req, res) => {
     try {

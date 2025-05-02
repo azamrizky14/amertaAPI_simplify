@@ -15,7 +15,7 @@ async function listByCompanyCode(req, res) {
     }
 
     // Initialize query with isDeleted condition
-    let query = { isDeleted: false };
+    let query = { isDeleted: "N" };
 
     // Check hierarchyCode and adjust the query accordingly
     if (hierarchyCode && parseFloat(hierarchyCode) > 1.1) {
@@ -40,7 +40,7 @@ async function listByCompanyCode(req, res) {
 async function getAllDomain(req, res) {
   try {
     // Retrieve all users from the database
-    const users = await Company.find({ isDeleted: false });
+    const users = await Company.find({ isDeleted: "N" });
     res.json(users);
   } catch (error) {
     console.error("Error fetching users:", error);

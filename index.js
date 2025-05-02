@@ -8,13 +8,20 @@
 
     // Transaksi 
     const Tr_teknis = require("./routes/Tr_teknis.route.js");
-    const Tr_po = require("./routes/Tr_po.route.js");
+    const Tr_purchase = require("./routes/Tr_purchase.route.js");
+
+    // Stock
+    const Stock = require("./routes/Stock.route.js");
 
     // Tambahan
     const userInternal = require("./routes/userInternalRoutes.js");
+    const userExternal = require("./routes/userExternalRoutes.js");
     const utilities = require("./routes/utilitiesRoutes.js");
     const Item = require("./routes/itemRoutes.js");
     const Location = require("./routes/locationRoutes.js");
+    const Role = require("./routes/roleRoutes.js");
+    const Image = require("./routes/Image.route.js");
+
     const cors = require("cors")
     const path = require("path");
 
@@ -37,13 +44,19 @@
 
     // Transaksi 
     app.use("/api/Tr_teknis", Tr_teknis)
-    app.use("/api/Tr_po", Tr_po)
+    app.use("/api/Tr_purchase", Tr_purchase)
+
+    // Stock
+    app.use("/api/Stock", Stock)
 
     // Tambahan
     app.use("/api/userInternal", userInternal)
+    app.use("/api/userExternal", userExternal)
     app.use("/api/utilities", utilities)
     app.use("/api/item", Item);
     app.use("/api/location", Location);
+    app.use("/api/role", Role);
+    app.use("/api/image", Image);
 
 
     app.get("/", (req, res) => {

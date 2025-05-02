@@ -24,7 +24,7 @@ async function getSortedRole(req, res) {
     const { sortOrder } = req.params;
 
     // Build the query object
-    const query = { isDeleted: false };
+    const query = { isDeleted: "N" };
 
     // Determine sort direction: 1 for ascending, -1 for descending
     const sortDirection = sortOrder === 'up' ? 1 : -1;
@@ -44,7 +44,7 @@ async function getSortedRole(req, res) {
 async function getAllRole(req, res) {
   try {
     // Retrieve all users from the database
-    const role = await Role.find({ isDeleted: false });
+    const role = await Role.find({ isDeleted: "N" });
     res.json(role);
   } catch (error) {
     console.error("Error fetching role:", error);
@@ -58,7 +58,7 @@ async function getAllRoleInternal(req, res) {
     const { hierarchyCode } = req.params;
 
     // Build the query object
-    let query = { isDeleted: false };
+    let query = { isDeleted: "N" };
 
     // Add condition to check hierarchyCode
     if (hierarchyCode && hierarchyCode < '1.0') {
@@ -85,7 +85,7 @@ async function getAllRoleExternal(req, res) {
     const { hierarchyCode } = req.params;
 
     // Initialize the query object
-    let query = { isDeleted: false };
+    let query = { isDeleted: "N" };
 
     // Add condition based on hierarchyCode
     if (hierarchyCode && parseFloat(hierarchyCode) < 1.3) {

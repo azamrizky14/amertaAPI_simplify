@@ -40,8 +40,7 @@ const userInternalSchema = new mongoose.Schema({
     type: Array,
   },
   accessEdited: {
-    type: Boolean,
-    default: false, // no dan yes
+    type: String,
   },
   userAccStatus: {
     type: String,
@@ -69,8 +68,7 @@ const userInternalSchema = new mongoose.Schema({
     required: [true, "Please enter your Role"],
   },
   isDeleted: {
-    type: Boolean,
-    default: false // true dan false
+    type: String
   },
   userProperties: {
     type: Object,

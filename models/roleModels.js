@@ -21,10 +21,7 @@ const roleSchema = new mongoose.Schema({
     type: Array,
   },
   isDeleted: {
-    type: Boolean,
-    enum: [true, false],
-    default: false // true dan false
-  }
+    type: String  }
 }, {
   timestamps: true,
 });

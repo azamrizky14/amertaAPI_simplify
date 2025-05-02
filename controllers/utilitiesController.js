@@ -15,7 +15,7 @@ const Utilities = require("../models/utilitiesModels");
 async function getAllUtilities(req, res) {
   try {
     // Retrieve all users from the database
-    const utilities = await Utilities.find({ isDeleted: false });
+    const utilities = await Utilities.find({ isDeleted: "N" });
     res.json(utilities);
   } catch (error) {
     console.error("Error fetching utilities:", error);
@@ -28,7 +28,7 @@ async function getUtilsByName(req, res) {
   try {
     const reqUtilName = req.params.utilName
     // Retrieve all users from the database
-    const utilities = await Utilities.findOne({ isDeleted: false, utilName: reqUtilName });
+    const utilities = await Utilities.findOne({ isDeleted: "N", utilName: reqUtilName });
     res.json(utilities);
   } catch (error) {
     console.error("Error fetching utilities:", error);
