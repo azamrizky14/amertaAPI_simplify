@@ -386,6 +386,7 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
     let {
       Tr_teknis_logistik_id,
       Tr_teknis_work_order_terpakai_material,
+      Tr_teknis_work_order_retur,
       Tr_teknis_jenis,
       Tr_teknis_kategori,
       Tr_teknis_trouble,
@@ -402,11 +403,19 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
     } = req.body;
 
     let materialTerpakai = [];
+    let materialKembali = [];
     if (Tr_teknis_work_order_terpakai_material) {
       if (typeof Tr_teknis_work_order_terpakai_material === "string") {
         materialTerpakai = JSON.parse(Tr_teknis_work_order_terpakai_material);
       } else if (Array.isArray(Tr_teknis_work_order_terpakai_material)) {
         materialTerpakai = Tr_teknis_work_order_terpakai_material;
+      }
+    }
+    if (Tr_teknis_work_order_retur) {
+      if (typeof Tr_teknis_work_order_retur === "string") {
+        materialKembali = JSON.parse(Tr_teknis_work_order_retur);
+      } else if (Array.isArray(Tr_teknis_work_order_retur)) {
+        materialKembali = Tr_teknis_work_order_retur;
       }
     }
 
@@ -531,7 +540,7 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
     }
 
     let updatedRecord;
-    
+    console.log(materialKembali)
     const workOrderData = {
       _id: new mongoose.Types.ObjectId(),
       Tr_teknis_pelanggan_id,
@@ -545,6 +554,7 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
       Tr_teknis_logistik_id,
       Tr_teknis_team,
       Tr_teknis_work_order_terpakai_material: materialTerpakai,
+      Tr_teknis_work_order_retur: materialKembali,
       Tr_teknis_work_order_images: Tr_teknis_images,
     };
     
@@ -553,6 +563,7 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
       workOrderData.Tr_teknis_action = Tr_teknis_action;
     }
     
+    console.log(workOrderData)
     updatedRecord = await Tr_teknis.findByIdAndUpdate(
       existingData._id,
       { $push: { Tr_teknis_work_order_terpakai: workOrderData } },
