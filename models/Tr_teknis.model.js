@@ -14,6 +14,9 @@ const Tr_teknisSchema = mongoose.Schema({
         enum: ["open", "closed"],
         type: String,
     },
+    Tr_teknis_lokasi: {
+        type: String,
+    },
     Tr_teknis_deleted: {
         type: String,
     },
@@ -26,20 +29,6 @@ const Tr_teknisSchema = mongoose.Schema({
     Tr_teknis_keterangan_closing: {
         type: String,
     },
-    // New field for images
-    // Tr_teknis_images: {
-    //     type: Map,
-    //     of: String, // The key will be the image field name, and the value will be the filename
-    // },
-    // Tr_teknis_trouble: {
-    //     type: String,
-    // },
-    // Tr_teknis_action: {
-    //     type: String,
-    // },
-    // Tr_teknis_pelanggan_server: {
-    //     type: String,
-    // },
     Tr_teknis_company: {
         type: String,
     },
@@ -72,6 +61,9 @@ const Tr_teknisSchema = mongoose.Schema({
         type: Array,
     },
     Tr_teknis_work_order_kembali: {
+        type: Array,
+    },
+    Tr_teknis_work_order_retur: {
         type: Array,
     }
 }, {
