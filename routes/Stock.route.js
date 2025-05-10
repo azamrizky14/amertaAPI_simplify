@@ -9,6 +9,7 @@ router.get("/StockSh/getDataByLocation/:domain/:hierarchy/:location?", Stock.get
 router.post("/StockSh/create", Stock.createStockSh);
 
 // Stock Opname
+router.get("/StockSo/getdata/:domain/:hierarchy", Stock.getStockSo);
 router.get("/StockSo/getDataForSO/:domain/:hierarchy", Stock.getStockSummaryForSO);
 router.get("/StockSo/getSoPrefix/:date", Stock.getSoPrefix);
 

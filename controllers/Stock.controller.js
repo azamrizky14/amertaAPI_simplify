@@ -47,10 +47,10 @@ const getStockSummaryByLocation = async (req, res) => {
     const stockMap = {};
 
     allStock.forEach((item) => {
-      const id = item.Sh_item_id;
+      const key = `${item.Sh_item_id}__${item.Sh_item_jenis}`;
 
-      if (!stockMap[id]) {
-        stockMap[id] = {
+      if (!stockMap[key]) {
+        stockMap[key] = {
           Sh_item_id: item.Sh_item_id,
           Sh_item_nama: item.Sh_item_nama,
           Sh_item_tipe: item.Sh_item_tipe,
@@ -63,21 +63,21 @@ const getStockSummaryByLocation = async (req, res) => {
 
       // --- Perhitungan qty ---
       if (item.Sh_location_to === location) {
-        stockMap[id].Sh_item_qty += item.Sh_item_qty;
+        stockMap[key].Sh_item_qty += item.Sh_item_qty;
       }
 
       if (item.Sh_location_from === location) {
-        stockMap[id].Sh_item_qty -= item.Sh_item_qty;
+        stockMap[key].Sh_item_qty -= item.Sh_item_qty;
       }
 
       // --- Manajemen properti ---
       if (item.Sh_location_to === location && item.Sh_item_properties?.length) {
-        stockMap[id].Sh_item_properties.push(...item.Sh_item_properties);
+        stockMap[key].Sh_item_properties.push(...item.Sh_item_properties);
       }
 
       if (item.Sh_location_from === location && item.Sh_item_properties?.length) {
         const removeIds = item.Sh_item_properties.map((p) => p.item_properties_id);
-        stockMap[id].Sh_item_properties = stockMap[id].Sh_item_properties.filter(
+        stockMap[key].Sh_item_properties = stockMap[key].Sh_item_properties.filter(
           (p) => !removeIds.includes(p.item_properties_id)
         );
       }
@@ -116,6 +116,7 @@ const getStockSummaryForSO = async (req, res) => {
 
     const allStock = await Sh.find(filter).lean();
 
+    const skipKeywords = ['External', 'stock-opname', 'floating-', 'installed-'];
     const stockPerLocation = {};
 
     allStock.forEach((item) => {
@@ -126,7 +127,13 @@ const getStockSummaryForSO = async (req, res) => {
 
       locations.forEach(({ key, qtySign }) => {
         const locId = item[key];
-        if (!locId || locId === 'External') return; // SKIP buat grup External
+        if (!locId) return;
+
+        // Skip jika locId mengandung salah satu keyword
+        const shouldSkip = skipKeywords.some(keyword =>
+          locId.toLowerCase().includes(keyword.toLowerCase())
+        );
+        if (shouldSkip) return;
 
         if (!stockPerLocation[locId]) {
           stockPerLocation[locId] = {
@@ -137,10 +144,12 @@ const getStockSummaryForSO = async (req, res) => {
         }
 
         const stockMap = stockPerLocation[locId].lokasi_item;
-        const id = item.Sh_item_id;
 
-        if (!stockMap[id]) {
-          stockMap[id] = {
+        // Gunakan kombinasi item_id dan item_jenis sebagai key
+        const itemKey = `${item.Sh_item_id}_${item.Sh_item_jenis}`;
+
+        if (!stockMap[itemKey]) {
+          stockMap[itemKey] = {
             Sh_item_id: item.Sh_item_id,
             Sh_item_nama: item.Sh_item_nama,
             Sh_item_tipe: item.Sh_item_tipe,
@@ -152,25 +161,25 @@ const getStockSummaryForSO = async (req, res) => {
         }
 
         // Hitung qty
-        stockMap[id].Sh_item_qty += qtySign * item.Sh_item_qty;
+        stockMap[itemKey].Sh_item_qty += qtySign * item.Sh_item_qty;
 
-        // Manage properties
+        // Tambah properties jika masuk
         if (qtySign > 0 && item.Sh_item_properties?.length) {
-          stockMap[id].Sh_item_properties.push(...item.Sh_item_properties);
+          stockMap[itemKey].Sh_item_properties.push(...item.Sh_item_properties);
         }
 
+        // Kurangi properties jika keluar
         if (qtySign < 0 && item.Sh_item_properties?.length) {
           const removeIds = item.Sh_item_properties.map(p => p.item_properties_id);
-          stockMap[id].Sh_item_properties = stockMap[id].Sh_item_properties.filter(
+          stockMap[itemKey].Sh_item_properties = stockMap[itemKey].Sh_item_properties.filter(
             p => !removeIds.includes(p.item_properties_id)
           );
         }
       });
     });
 
-    // Konversi hasil akhir
+    // Konversi hasil akhir ke format array dan deduplikasi properties
     const result = Object.values(stockPerLocation).map((lokasi) => {
-      // Deduplikasi dan konversi object ke array
       lokasi.lokasi_item = Object.values(lokasi.lokasi_item).map((item) => {
         const seen = new Set();
         item.Sh_item_properties = item.Sh_item_properties.filter((p) => {
@@ -180,7 +189,6 @@ const getStockSummaryForSO = async (req, res) => {
         });
         return item;
       });
-
       return lokasi;
     });
 
@@ -195,6 +203,7 @@ const getStockSummaryForSO = async (req, res) => {
   }
 };
 
+
 // CREATE
 const createStockSh = async (req, res) => {
   try {
@@ -208,6 +217,31 @@ const createStockSh = async (req, res) => {
 };
 
 const So = require("../models/Stock_opname.model");
+
+
+const getStockSo = async (req, res) => {
+  try {
+    const { domain, hierarchy } = req.params;
+
+    // Create a filter object dynamically
+    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1);
+    const filter = { companyCode: newDomain };
+
+    // Fetch the data based on the dynamic filter
+    const StockSh = await So.find(filter);
+
+    // Check if any data was found
+    if (StockSh.length > 0) {
+      const reversedData = StockSh.reverse();
+      return res.status(200).json(reversedData);
+    } else {
+      return res.status(404).json({ message: "DATA KOSONG" });
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
 // CREATE
 const createSo = async (req, res) => {
   try {
@@ -266,7 +300,8 @@ module.exports = {
   getStockSummaryByLocation,
   getStockSummaryForSO,
   createStockSh,
-
+  
+  getStockSo,
   getSoPrefix,
   createSo,
 };
