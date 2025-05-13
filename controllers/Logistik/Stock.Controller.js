@@ -1,8 +1,11 @@
 const mongoose = require("mongoose");
-const { findByHierarchyAndDomain } = require("../utils/hierarchyAndDomain");
+const { findByHierarchyAndDomain } = require("../../utils/hierarchyAndDomain");
 
-// SH Controller
-const Sh = require("../models/Stock_sh.model");
+// SH & SO Controller
+const Sh = require("../../models/Logistik/Stock_History.Model");
+const So = require("../../models/Logistik/Stock_Opname.Model");
+
+
 
 // GET BY DOMAIN
 const getStockSh = async (req, res) => {
@@ -216,7 +219,6 @@ const createStockSh = async (req, res) => {
   }
 };
 
-const So = require("../models/Stock_opname.model");
 
 
 const getStockSo = async (req, res) => {
@@ -240,6 +242,18 @@ const getStockSo = async (req, res) => {
   } catch (error) {
     console.error("Error fetching data:", error);
     return res.status(500).json({ message: error.message });
+  }
+};
+// Get Detail 
+const getStockSoDetail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const filter = {_id: id}
+
+    const MasterItem = await So.findById(filter);
+    res.status(200).json(MasterItem);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 // CREATE
@@ -302,6 +316,7 @@ module.exports = {
   createStockSh,
   
   getStockSo,
+  getStockSoDetail,
   getSoPrefix,
   createSo,
 };

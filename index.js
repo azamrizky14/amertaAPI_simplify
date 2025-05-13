@@ -4,23 +4,24 @@
     // Auth route 
     
     // Master 
-    const Company = require("./routes/companyRoutes.js");
+    const Company = require("./routes/Umum/Company.Route.js");
+    
 
     // Transaksi 
-    const Tr_teknis = require("./routes/Tr_teknis.route.js");
-    const Tr_purchase = require("./routes/Tr_purchase.route.js");
+    const Tr_teknis = require("./routes/Teknis/Tr_teknis.Route.js");
+    const Tr_purchase = require("./routes/Logistik/Tr_purchase.Route.js");
 
     // Stock
-    const Stock = require("./routes/Stock.route.js");
+    const Stock = require("./routes/Logistik/Stocks.Route.js");
 
     // Tambahan
-    const userInternal = require("./routes/userInternalRoutes.js");
-    const userExternal = require("./routes/userExternalRoutes.js");
-    const utilities = require("./routes/utilitiesRoutes.js");
-    const Item = require("./routes/itemRoutes.js");
-    const Location = require("./routes/locationRoutes.js");
-    const Role = require("./routes/roleRoutes.js");
-    const Image = require("./routes/Image.route.js");
+    const userInternal = require("./routes/Umum/UserInternal.Route.js");
+    const userExternal = require("./routes/Umum/UserExternal.Route.js");
+    const utilities = require("./routes/Umum/Utilities.Route.js");
+    const Item = require("./routes/Umum/Item.Route.js");
+    const Location = require("./routes/Umum/Location.Route.js");
+    const Role = require("./routes/Umum/Role.Route.js");
+    const Image = require("./routes/Umum/Image.Route.js");
 
     const cors = require("cors")
     const path = require("path");
@@ -66,7 +67,7 @@
 
     mongoose
         .connect(
-            "mongodb://127.0.0.1:27017/internal-amerta"
+            "mongodb://103.178.13.50:136/internal-amerta"
             // "mongodb://localhost:27017/internal-amerta"
             // "mongodb://root:ServerAmerta2024@77.37.47.90:27017/dbAmerta"
         )

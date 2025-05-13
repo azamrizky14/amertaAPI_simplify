@@ -40,7 +40,8 @@ const uploadGR = multer({ storage: storageGR })
 const uploadQA = multer({ storage: storageQA })
 
 const router = express.Router();
-const TrPurchase = require('../controllers/Tr_purchase.controller.js');
+const TrPurchase = require('../../controllers/Logistik/Tr_purchase.Controller.js');
+
 
 // Purchase Order
 router.get("/TrPo/getdata/:domain/:hierarchy/:deleted?/:status?", TrPurchase.getTrPo);

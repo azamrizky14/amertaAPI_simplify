@@ -1,8 +1,9 @@
 // userInternalRoutes.js
 const express = require("express");
 const router = express.Router();
-const companyController = require("../controllers/companyController");
-const upload = require('../utils/multerConfig'); // Adjust the path as necessary
+const companyController = require("../../controllers/Umum/Company.Controller");
+
+const upload = require('../../utils/multerConfig'); // Adjust the path as necessary
 
 // Define routes and map them to controller methods
 

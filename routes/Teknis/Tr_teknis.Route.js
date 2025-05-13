@@ -1,7 +1,6 @@
 const express = require("express");
 const multer = require("multer");
 
-const Trteknis = require("../models/Tr_teknis.model.js");
 const router = express.Router();
 const {
     getTrTeknis,
@@ -17,7 +16,7 @@ const {
     getBonPrefix,
     getAllWorkOrders,
     getTrTeknisEvident
-} = require('../controllers/Tr_teknis.controller.js');
+} = require('../../controllers/Teknis/Tr_teknis.Controller.js');
 // / Multer storage configuration
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {

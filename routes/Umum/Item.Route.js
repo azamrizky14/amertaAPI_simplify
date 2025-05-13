@@ -1,8 +1,8 @@
 const express = require("express");
 const multer = require("multer");
-const Item = require("../models/itemModels.js");
 const router = express.Router();
-const itemController = require("../controllers/itemController");
+const itemController = require("../../controllers/Umum/Item.Controller");
+
 // Multer storage configuration
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
