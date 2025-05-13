@@ -244,6 +244,18 @@ const getStockSo = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+// Get Detail 
+const getStockSoDetail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const filter = {_id: id}
+
+    const MasterItem = await So.findById(filter);
+    res.status(200).json(MasterItem);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 // CREATE
 const createSo = async (req, res) => {
   try {
@@ -304,6 +316,7 @@ module.exports = {
   createStockSh,
   
   getStockSo,
+  getStockSoDetail,
   getSoPrefix,
   createSo,
 };
