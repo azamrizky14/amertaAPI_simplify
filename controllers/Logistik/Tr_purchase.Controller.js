@@ -1,8 +1,11 @@
 const mongoose = require("mongoose");
-const { findByHierarchyAndDomain } = require("../utils/hierarchyAndDomain");
+const { findByHierarchyAndDomain } = require("../../utils/hierarchyAndDomain");
 
-// PO Controller
-const Tr_po = require("../models/Tr_po.model");
+// ALL MODEL
+const Tr_po = require("../../models/Logistik/Tr_PurchaseOrder.Model");
+const Tr_pp = require("../../models/Logistik/Tr_PurchasePayment.Model");
+const Tr_qa = require("../../models/Logistik/Tr_Qa.Model");
+const Tr_gr = require("../../models/Logistik/Tr_GoodReceipt.Model");
 
 // GET BY DOMAIN
 const getTrPo = async (req, res) => {
@@ -200,7 +203,6 @@ const getPoPrefix = async (req, res) => {
 };
 
 // PO Controller
-const Tr_pp = require("../models/Tr_pp.model");
 
 // GET ALL
 const getTrPpAll = async (req, res) => {
@@ -387,8 +389,6 @@ const getPpPrefix = async (req, res) => {
   }
 };
 
-// PO Controller
-const Tr_gr = require("../models/Tr_gr.model");
 
 // GET BY DOMAIN
 const getTrGr = async (req, res) => {
@@ -611,8 +611,7 @@ const updateTrGrByGR = async (req, res) => {
   }
 };
 
-// QA Controller
-const Tr_qa = require("../models/Tr_qa.model");
+
 
 // GET BY DOMAIN
 const getTrQa = async (req, res) => {

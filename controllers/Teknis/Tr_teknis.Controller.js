@@ -1,6 +1,6 @@
-const Tr_teknis = require("../models/Tr_teknis.model");
+const Tr_teknis = require("../../models/Teknis/Tr_teknis.Model");
 const mongoose = require("mongoose");
-const { findByHierarchyAndDomain } = require("../utils/hierarchyAndDomain");
+const { findByHierarchyAndDomain } = require("../../utils/hierarchyAndDomain");
 
 const fs = require("fs");
 const path = require("path");

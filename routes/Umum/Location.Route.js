@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const locationController = require("../controllers/locationController.js");
+const locationController = require("../../controllers/Umum/Location.Controller.js");
+
 
 // GET
 router.get("/getAllLocation/:domain/:hierarchy/:deleted?", locationController.getMasterLocation);
@@ -14,9 +15,7 @@ router.post("/create", locationController.createMasterLocation);
 // UPDATE
 router.put("/update/:id", locationController.updateMasterLocation);
 
-
 // update a product
-
 
 
 

@@ -11,7 +11,9 @@ const jwt = require("jsonwebtoken");
 
 // getUserExternal()
 
-const UserExternal = require("../models/userExternalModels");
+
+const UserExternal = require("../../models/Umum/UserExternal.Models");
+
 
 // Controller method to get all users
 async function getAllUsers(req, res) {
