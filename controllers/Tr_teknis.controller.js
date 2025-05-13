@@ -540,7 +540,6 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
     }
 
     let updatedRecord;
-    console.log(materialKembali)
     const workOrderData = {
       _id: new mongoose.Types.ObjectId(),
       Tr_teknis_pelanggan_id,
@@ -563,7 +562,6 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
       workOrderData.Tr_teknis_action = Tr_teknis_action;
     }
     
-    console.log(workOrderData)
     updatedRecord = await Tr_teknis.findByIdAndUpdate(
       existingData._id,
       { $push: { Tr_teknis_work_order_terpakai: workOrderData } },
