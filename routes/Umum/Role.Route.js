@@ -1,7 +1,8 @@
 // userInternalRoutes.js
 const express = require("express");
 const router = express.Router();
-const roleController = require("../controllers/roleController");
+const roleController = require("../../controllers/Umum/Role.Controller");
+
 // Define routes and map them to controller methods
 
 // GET ROUTER

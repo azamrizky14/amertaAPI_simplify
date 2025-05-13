@@ -1,7 +1,8 @@
 const express = require("express");
 
 const router = express.Router();
-const Stock = require('../controllers/Stock.controller.js');
+const Stock = require('../../controllers/Logistik/Stock.Controller.js');
+
 // Stock History
 router.get("/StockSh/getdata/:domain/:hierarchy", Stock.getStockSh);
 router.get("/StockSh/getDataByLocation/:domain/:hierarchy/:location?", Stock.getStockSummaryByLocation);

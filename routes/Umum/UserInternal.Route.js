@@ -2,7 +2,7 @@
 const express = require("express");
 const multer = require("multer");
 const router = express.Router();
-const userInternalController = require("../controllers/userInternalController");
+const userInternalController = require("../../controllers/Umum/UserInternal.Controller");
 // / Multer storage configuration
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {

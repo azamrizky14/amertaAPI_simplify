@@ -1,7 +1,8 @@
 // userInternalRoutes.js
 const express = require("express");
 const router = express.Router();
-const utilitiesConntroller = require("../controllers/utilitiesController");
+const utilitiesConntroller = require("../../controllers/Umum/Utilities.Controller");
+
 
 // Define routes and map them to controller methods
 

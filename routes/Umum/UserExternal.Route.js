@@ -2,7 +2,8 @@
 const express = require("express");
 const multer = require("multer");
 const router = express.Router();
-const userExternalController = require("../controllers/userExternalController");
+const userExternalController = require("../../controllers/Umum/UserExternal.Controller");
+
 // / Multer storage configuration
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {

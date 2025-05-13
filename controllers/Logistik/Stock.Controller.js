@@ -1,8 +1,11 @@
 const mongoose = require("mongoose");
-const { findByHierarchyAndDomain } = require("../utils/hierarchyAndDomain");
+const { findByHierarchyAndDomain } = require("../../utils/hierarchyAndDomain");
 
-// SH Controller
-const Sh = require("../models/Stock_sh.model");
+// SH & SO Controller
+const Sh = require("../../models/Logistik/Stock_History.Model");
+const So = require("../../models/Logistik/Stock_Opname.Model");
+
+
 
 // GET BY DOMAIN
 const getStockSh = async (req, res) => {
@@ -216,7 +219,6 @@ const createStockSh = async (req, res) => {
   }
 };
 
-const So = require("../models/Stock_opname.model");
 
 
 const getStockSo = async (req, res) => {

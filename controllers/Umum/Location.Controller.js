@@ -1,6 +1,5 @@
-  const Location = require("../models/locationModels.js");
-
-  const { findByHierarchyAndDomain } = require("../utils/hierarchyAndDomain");
+  const Location = require("../../models/Umum/Location.Models.js");
+  const { findByHierarchyAndDomain } = require("../../utils/hierarchyAndDomain");
   // GET BY DOMAIN
   const getMasterLocation = async (req, res) => {
     try {

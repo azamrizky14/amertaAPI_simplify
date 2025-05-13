@@ -11,7 +11,8 @@ const jwt = require("jsonwebtoken");
 
 // getUserInternal()
 
-const UserInternal = require("../models/userInternalModels");
+const UserInternal = require("../../models/Umum/UserInternal.Models");
+
 
 // Controller method to get all users
 async function getAllUsers(req, res) {

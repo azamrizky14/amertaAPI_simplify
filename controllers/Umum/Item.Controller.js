@@ -1,6 +1,7 @@
-const Item = require("../models/itemModels.js");
+const Item = require("../../models/Umum/Item.Models.js");
 
-const { findByHierarchyAndDomain } = require("../utils/hierarchyAndDomain");
+
+const { findByHierarchyAndDomain } = require("../../utils/hierarchyAndDomain");
 
 // GET BY DOMAIN
 const getMasterItem = async (req, res) => {

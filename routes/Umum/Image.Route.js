@@ -19,7 +19,8 @@ const storageTempGeneral = multer.diskStorage({
 const uploadTempGeneral = multer({ storage: storageTempGeneral });
 
 const router = express.Router();
-const Image = require('../controllers/Image.controller.js');
+const Image = require('../../controllers/Umum/Image.Controller.js');
+
 
 // General
 

@@ -1,8 +1,9 @@
 // companyController.js
 require('dotenv').config();
 
-const Company = require("../models/companyModels");
-const UserInternal = require("../models/userInternalModels");
+const Company = require("../../models/Umum/Company.Models");
+const UserInternal = require("../../models/Umum/UserInternal.Models");
+
 
 // Controller method to create a new user
 async function listByCompanyCode(req, res) {

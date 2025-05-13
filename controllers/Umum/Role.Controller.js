@@ -16,8 +16,8 @@ require('dotenv').config();
 // }  
 // getUserInternal()
 
-const Role = require("../models/roleModels");
-const UserInternal = require("../models/userInternalModels");
+const Role = require("../../models/Umum/Role.Models");
+// const UserInternal = require("../../models/Umum/UserInternal.Models");
 
 async function getSortedRole(req, res) {
   try {

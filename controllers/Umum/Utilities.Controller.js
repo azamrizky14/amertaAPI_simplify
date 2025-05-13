@@ -9,7 +9,8 @@ require('dotenv').config();
 // }  
 // getUtilities()
 
-const Utilities = require("../models/utilitiesModels");
+const Utilities = require("../../models/Umum/Utilities.Models");
+
 
 // Controller method to get all users
 async function getAllUtilities(req, res) {
