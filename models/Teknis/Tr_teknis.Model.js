@@ -7,6 +7,9 @@ const Tr_teknisSchema = mongoose.Schema({
     Tr_teknis_logistik_id: {
         type: String,
     },
+    Tr_teknis_task_id:{
+        type: String
+    },
     Tr_teknis_team: {
         type: Array,
     },

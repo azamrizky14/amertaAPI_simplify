@@ -432,13 +432,23 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
 
       if (dynamicFields) {
         Object.keys(Tr_teknis_images).forEach(key => {
-          if (dynamicFields[key]) {
-            // Ubah item kosong jadi "" lalu push ke data2[key]
-            Tr_teknis_images[key].push(...dynamicFields[key].map(item => item ?? ""));
+          let parsed = dynamicFields[key];
+          
+          // Coba parsing jika bentuknya string
+          if (typeof parsed === 'string') {
+            try {
+              parsed = JSON.parse(parsed);
+            } catch (e) {
+              parsed = [];
+            }
           }
-        })
+      
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            Tr_teknis_images[key].push(...parsed.map(item => item ?? ""));
+          }
+        });
       }
-
+      
       for (const field in Tr_teknis_images) {
         if (Tr_teknis_images.hasOwnProperty(field) && Tr_teknis_images[field]) {
           let images = Tr_teknis_images[field]; // Ambil array gambar
@@ -540,6 +550,7 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
     }
 
     let updatedRecord;
+    // console.log(materialKembali)
     const workOrderData = {
       _id: new mongoose.Types.ObjectId(),
       Tr_teknis_pelanggan_id,
@@ -562,6 +573,7 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
       workOrderData.Tr_teknis_action = Tr_teknis_action;
     }
     
+    // console.log(workOrderData)
     updatedRecord = await Tr_teknis.findByIdAndUpdate(
       existingData._id,
       { $push: { Tr_teknis_work_order_terpakai: workOrderData } },

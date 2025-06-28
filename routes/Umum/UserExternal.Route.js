@@ -27,7 +27,7 @@ router.get("/getUserByRole/:companyName/:userRole?", userExternalController.getU
 router.post("/create", upload.single('userImage'), userExternalController.createUser)
 router.post("/createOne", userExternalController.createUserOne);
 router.post("/login", userExternalController.loginUser);
-router.post("/listByCompanyCode", userExternalController.listByCompanyCode);
+router.post("/listBycompanyCode", userExternalController.listBycompanyCode);
 
 // PUT ROUTER
 router.put("/updateOne/:userId", userExternalController.updateUserOne);

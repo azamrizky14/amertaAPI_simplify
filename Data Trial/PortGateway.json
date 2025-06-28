@@ -1,0 +1,17 @@
+{
+    "PortGateway_id":"PORTGATEWAY-001",
+    "PortGateway_nama":"Customer Service(Pasuruan)",
+    "PortGateway_tipe":"Bot",
+    "PortGateway_port":"http://192.168.0.1:5001",
+    "PortGateway_status":"Y",
+    "PortGateway_user_created":"HighUser",
+    "PortGateway_created":"2025-06-03",
+    "PortGateway_updated":[
+        {
+            "Announcement_updated_name":"Admin",
+            "Announcement_updated_tanggal":"2025-06-03"
+        }
+    ],
+    "comment":"MANAGEMENT PORT UNTUK MENGKONEKSIKAN API GATEWAY"
+}
+

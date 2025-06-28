@@ -1,0 +1,50 @@
+{
+  "Tr_rab_nama": "PROYEK PEMBANGUNAN KOTA A",
+  "Tr_rab_kategori": "PROYEK BESAR",
+  "Tr_rab_pic": [
+    {
+      "Tr_rab_pic_nama": "",
+      "Tr_rab_pic_bagian": ""
+    },
+    {
+      "Tr_rab_pic_nama": "",
+      "Tr_rab_pic_bagian": ""
+    }
+  ],
+  "Tr_rab_kebutuhan": [
+    {
+      "Tr_rab_kebutuhan_nama_material": "",
+      "Tr_rab_kebutuhan_jasa":"",
+      "Tr_rab_kebutuhan_jumlah": "",
+      "Tr_rab_kebutuhan_harga": ""
+    },
+    {
+      "Tr_rab_kebutuhan_nama_material": "",
+      "Tr_rab_kebutuhan_jasa":"",
+      "Tr_rab_kebutuhan_jumlah": "",
+      "Tr_rab_kebutuhan_harga": ""
+    }
+  ],
+  "Tr_rab_total_harga": "",
+  "Tr_rab_progress": [
+    {
+      "Tr_rab_progress_image_evident": "",
+      "Tr_rab_progress_percentage": ""
+    },
+    {
+      "Tr_rab_progress_image_evident": "",
+      "Tr_rab_progress_percentage": ""
+    }
+  ],
+  "Tr_rab_image_invoice": "",
+  "Tr_rab_status": "Y",
+  "Tr_rab_created": "20-02-2025",
+  "Tr_rab_updated": [
+    {
+      "Tr_rab_updated_nama": "Adminrab",
+      "Tr_rab_updated_tanggal": "20-02-2025"
+    }
+  ],
+  "companyName": "",
+  "companyCode": []
+}

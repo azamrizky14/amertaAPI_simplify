@@ -6,7 +6,7 @@ const UserInternal = require("../../models/Umum/UserInternal.Models");
 
 
 // Controller method to create a new user
-async function listByCompanyCode(req, res) {
+async function listBycompanyCode(req, res) {
   try {
     const companyCode = req.body.companyCode;
     const hierarchyCode = req.body.hierarchyCode; // Assuming hierarchyCode is passed in the request body
@@ -135,24 +135,24 @@ const createCompany = async (req, res) => {
 
     // Transform the companyCode as per the requirement
     let newNumber = 1;
-    const originalCompanyCode = JSON.parse(data.companyCode);
-    const lastCompanyCode = originalCompanyCode[originalCompanyCode.length - 1];
-    let newCompanyCode = [...originalCompanyCode, [...lastCompanyCode, newNumber]];
+    const originalcompanyCode = JSON.parse(data.companyCode);
+    const lastcompanyCode = originalcompanyCode[originalcompanyCode.length - 1];
+    let newcompanyCode = [...originalcompanyCode, [...lastcompanyCode, newNumber]];
 
     // Function to check if the company code already exists
-    const isCompanyCodeExists = async (code) => {
+    const iscompanyCodeExists = async (code) => {
       const existingCompany = await Company.findOne({ companyCode: code });
       return !!existingCompany;
     };
 
     // Check if the company code already exists, incrementing newNumber if necessary
-    while (await isCompanyCodeExists(newCompanyCode)) {
+    while (await iscompanyCodeExists(newcompanyCode)) {
       newNumber++;
-      newCompanyCode = [...originalCompanyCode, [...lastCompanyCode, newNumber]];
+      newcompanyCode = [...originalcompanyCode, [...lastcompanyCode, newNumber]];
     }
 
     // Update the data with the new unique companyCode
-    data.companyCode = newCompanyCode;
+    data.companyCode = newcompanyCode;
 
     // Create a new company based on the modified data
     const newCompany = await Company.create(data);
@@ -209,7 +209,7 @@ const updateCompany = async (req, res) => {
 
 // Export the controller methods
 module.exports = {
-  listByCompanyCode,
+  listBycompanyCode,
   getAllDomain,
   createCompany,
   updateCompany,

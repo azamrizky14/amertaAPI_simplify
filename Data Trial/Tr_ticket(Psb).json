@@ -1,0 +1,61 @@
+{
+  "Tr_ticket_id": "PSB-001",
+  "Tr_ticket_name": "Pemasangan Baru",
+  "Tr_ticket_status": "Y",
+  "Tr_ticket_kategori": "Psb",
+  "Tr_ticket_data_pelanggan": {
+    "Tr_ticket_data_pelanggan_id": "022406000",
+    "Tr_ticket_data_pelanggan_nama": "NANANG CAHYO RUSBIANTO ",
+    "Tr_ticket_data_pelanggan_paket_nama": "15Mbps",
+    "Tr_ticket_data_pelanggan_paket_bayar": "133500",
+    "Tr_ticket_data_pelanggan_afiliasi": "Sales-Sejahtera"
+  },
+  "Tr_ticket_completition_history": [
+    {
+      "Tr_ticket_completition_tanggal": "12-02-2025",
+      "Tr_ticket_completition_percent": "50",
+      "Tr_ticket_completition_keterangan": "Hujan",
+      "Tr_ticket_completition_pic": [
+        {
+          "Tr_ticket_completition_pic_name": "Azam",
+          "Tr_ticket_completition_pic_divisi": "PSN"
+        },
+        {
+          "Tr_ticket_completition_pic_name": "Coba",
+          "Tr_ticket_completition_pic_divisi": "PSN"
+        }
+      ]
+    },
+    {
+      "Tr_ticket_completition_tanggal": "12-02-2025",
+      "Tr_ticket_completition_percent": "100",
+      "Tr_ticket_completition_keterangan": "Mari bolo",
+      "Tr_ticket_completition_pic": [
+        {
+          "Tr_ticket_completition_pic_name": "Azam",
+          "Tr_ticket_completition_pic_divisi": "PSN"
+        },
+        {
+          "Tr_ticket_completition_pic_name": "Coba",
+          "Tr_ticket_completition_pic_divisi": "PSN"
+        }
+      ],
+      "Tr_ticket_completition_starthour":"",
+      "Tr_ticket_completition_endhour":""
+    }
+  ],
+  "Tr_ticket_alamat": {
+    "Tr_ticket_alamat_lokasi": "Jl Raya Purwosari No 86 A",
+    "Tr_ticket_titik_koordinat": "https://www.google.com/maps/place/Jl.+Raya+Purwosari+No.85,+Purwosari,+Kec.+Purwosari,+Pasuruan,+Jawa+Timur+67162/@-7.7731498,112.7425536,17z/data=!4m5!3m4!1s0x2dd7d3b8b5bc80d7:0x7b9ac86ea3bf5d85!8m2!3d-7.7731498!4d112.7451285?entry=ttu&g_ep=EgoyMDI1MDUxMy4xIKXMDSoASAFQAw%3D%3D"
+  },
+  "Tr_ticket_keterangan": "PSB bosqu",
+  "Tr_ticket_created": "Customer Service1",
+  "Tr_ticket_updated": [
+    {
+      "Tr_ticket_updated_nama": "Customer Service1",
+      "Tr_ticket_updated_tanggal": "12-02-2025"
+    }
+  ],
+  "companyCode": "Amerta-Pasuruan",
+  "companyCode": ""
+}

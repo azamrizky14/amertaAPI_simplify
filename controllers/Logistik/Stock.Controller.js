@@ -5,8 +5,6 @@ const { findByHierarchyAndDomain } = require("../../utils/hierarchyAndDomain");
 const Sh = require("../../models/Logistik/Stock_History.Model");
 const So = require("../../models/Logistik/Stock_Opname.Model");
 
-
-
 // GET BY DOMAIN
 const getStockSh = async (req, res) => {
   try {
@@ -39,10 +37,17 @@ const getStockSummaryByLocation = async (req, res) => {
     const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1);
     const filter = {
       companyCode: newDomain,
-      $or: [
-        { Sh_location_to: location },
-        { Sh_location_from: location }
-      ]
+      $or: [{ Sh_location_to: location }, { Sh_location_from: location }],
+      $nor: [
+        {
+          Sh_location_from: { $regex: "^floating-" },
+          Sh_location_to: { $regex: "^installed-" },
+        },
+        {
+          Sh_location_from: { $regex: "^installed-" },
+          Sh_location_to: { $regex: "^floating-" },
+        },
+      ],
     };
 
     const allStock = await Sh.find(filter);
@@ -51,7 +56,6 @@ const getStockSummaryByLocation = async (req, res) => {
 
     allStock.forEach((item) => {
       const key = `${item.Sh_item_id}__${item.Sh_item_jenis}`;
-
       if (!stockMap[key]) {
         stockMap[key] = {
           Sh_item_id: item.Sh_item_id,
@@ -60,42 +64,85 @@ const getStockSummaryByLocation = async (req, res) => {
           Sh_item_jenis: item.Sh_item_jenis,
           Sh_item_satuan: item.Sh_item_satuan,
           Sh_item_qty: 0,
-          Sh_item_properties: []
+          Sh_item_properties: [],
         };
       }
 
-      // --- Perhitungan qty ---
-      if (item.Sh_location_to === location) {
-        stockMap[key].Sh_item_qty += item.Sh_item_qty;
+      const isIn = item.Sh_location_to === location;
+      const isOut = item.Sh_location_from === location;
+      const isKabel = item.Sh_item_tipe === "Kabel";
+      const isModemOrTiang =
+        item.Sh_item_tipe === "Modem" || item.Sh_item_tipe === "Tiang";
+
+      // --- Perhitungan qty utama ---
+      if (!isKabel && !isModemOrTiang) {
+        if (isIn) stockMap[key].Sh_item_qty += item.Sh_item_qty;
+        if (isOut) stockMap[key].Sh_item_qty -= item.Sh_item_qty;
       }
 
-      if (item.Sh_location_from === location) {
-        stockMap[key].Sh_item_qty -= item.Sh_item_qty;
+      // --- Perhitungan properti ---
+      if (item.Sh_item_properties?.length) {
+        item.Sh_item_properties.forEach((prop) => {
+          const existingProp = stockMap[key].Sh_item_properties.find(
+            (p) => p.item_properties_id === prop.item_properties_id
+          );
+
+          if (isKabel) {
+            // Untuk Kabel: update qty di properti
+            if (isIn) {
+              if (existingProp) {
+                existingProp.item_properties_qty += prop.item_properties_qty;
+              } else {
+                stockMap[key].Sh_item_properties.push({ ...prop });
+              }
+            }
+            if (isOut) {
+              if (existingProp) {
+                existingProp.item_properties_qty -= prop.item_properties_qty;
+                if (existingProp.item_properties_qty <= 0) {
+                  stockMap[key].Sh_item_properties = stockMap[
+                    key
+                  ].Sh_item_properties.filter(
+                    (p) => p.item_properties_id !== prop.item_properties_id
+                  );
+                }
+              }
+            }
+          } else if (isModemOrTiang) {
+            // Untuk Modem dan Tiang: hanya tambahkan atau hapus berdasarkan in/out
+            if (isIn && !existingProp) {
+              stockMap[key].Sh_item_properties.push({ ...prop });
+            }
+            if (isOut) {
+              stockMap[key].Sh_item_properties = stockMap[
+                key
+              ].Sh_item_properties.filter(
+                (p) => p.item_properties_id !== prop.item_properties_id
+              );
+            }
+          } else {
+            // Untuk item lainnya
+            if (isIn && !existingProp) {
+              stockMap[key].Sh_item_properties.push({ ...prop });
+            }
+            if (isOut) {
+              stockMap[key].Sh_item_properties = stockMap[
+                key
+              ].Sh_item_properties.filter(
+                (p) => p.item_properties_id !== prop.item_properties_id
+              );
+            }
+          }
+        });
       }
 
-      // --- Manajemen properti ---
-      if (item.Sh_location_to === location && item.Sh_item_properties?.length) {
-        stockMap[key].Sh_item_properties.push(...item.Sh_item_properties);
-      }
-
-      if (item.Sh_location_from === location && item.Sh_item_properties?.length) {
-        const removeIds = item.Sh_item_properties.map((p) => p.item_properties_id);
-        stockMap[key].Sh_item_properties = stockMap[key].Sh_item_properties.filter(
-          (p) => !removeIds.includes(p.item_properties_id)
-        );
+      // --- Update qty utama untuk Kabel dan Modem/Tiang berdasarkan properti ---
+      if (isKabel || isModemOrTiang) {
+        stockMap[key].Sh_item_qty = stockMap[key].Sh_item_properties.length;
       }
     });
 
-    // --- Deduplikasi Sh_item_properties ---
-    const result = Object.values(stockMap).map((item) => {
-      const seen = new Set();
-      item.Sh_item_properties = item.Sh_item_properties.filter((p) => {
-        if (seen.has(p.item_properties_id)) return false;
-        seen.add(p.item_properties_id);
-        return true;
-      });
-      return item;
-    });
+    const result = Object.values(stockMap);
 
     if (result.length === 0) {
       return res.status(404).json({ message: "DATA KOSONG" });
@@ -113,87 +160,145 @@ const getStockSummaryForSO = async (req, res) => {
     const { domain, hierarchy } = req.params;
 
     const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1);
-    const filter = {
-      companyCode: newDomain
-    };
 
-    const allStock = await Sh.find(filter).lean();
+    const skipKeywords = [
+      "External",
+      "stock-opname",
+      "floating-",
+      "installed-",
+    ];
 
-    const skipKeywords = ['External', 'stock-opname', 'floating-', 'installed-'];
+    const allStock = await Sh.find({
+      companyCode: newDomain,
+    });
+
     const stockPerLocation = {};
 
     allStock.forEach((item) => {
-      const locations = [
-        { key: 'Sh_location_to', qtySign: 1 },
-        { key: 'Sh_location_from', qtySign: -1 }
-      ];
+      const { Sh_location_to, Sh_location_from } = item;
+      const isKabel = item.Sh_item_tipe === "Kabel";
+      const isModemOrTiang =
+        item.Sh_item_tipe === "Modem" || item.Sh_item_tipe === "Tiang";
 
-      locations.forEach(({ key, qtySign }) => {
-        const locId = item[key];
+      const locations = [Sh_location_from, Sh_location_to];
+
+      locations.forEach((locId, index) => {
+        const isIn = index === 1;
+        const isOut = index === 0;
+
         if (!locId) return;
-
-        // Skip jika locId mengandung salah satu keyword
-        const shouldSkip = skipKeywords.some(keyword =>
-          locId.toLowerCase().includes(keyword.toLowerCase())
-        );
-        if (shouldSkip) return;
 
         if (!stockPerLocation[locId]) {
           stockPerLocation[locId] = {
             lokasi_id: locId,
-            lokasi_nama: locId, // Ganti jika kamu punya data nama lokasi
-            lokasi_item: {}
+            lokasi_nama: locId,
+            lokasi_item: {},
           };
         }
 
-        const stockMap = stockPerLocation[locId].lokasi_item;
-
-        // Gunakan kombinasi item_id dan item_jenis sebagai key
-        const itemKey = `${item.Sh_item_id}_${item.Sh_item_jenis}`;
-
-        if (!stockMap[itemKey]) {
-          stockMap[itemKey] = {
+        const key = `${item.Sh_item_id}__${item.Sh_item_jenis}`;
+        if (!stockPerLocation[locId].lokasi_item[key]) {
+          stockPerLocation[locId].lokasi_item[key] = {
             Sh_item_id: item.Sh_item_id,
             Sh_item_nama: item.Sh_item_nama,
             Sh_item_tipe: item.Sh_item_tipe,
             Sh_item_jenis: item.Sh_item_jenis,
             Sh_item_satuan: item.Sh_item_satuan,
             Sh_item_qty: 0,
-            Sh_item_properties: []
+            Sh_item_properties: [],
           };
         }
 
-        // Hitung qty
-        stockMap[itemKey].Sh_item_qty += qtySign * item.Sh_item_qty;
+        const currentItem = stockPerLocation[locId].lokasi_item[key];
 
-        // Tambah properties jika masuk
-        if (qtySign > 0 && item.Sh_item_properties?.length) {
-          stockMap[itemKey].Sh_item_properties.push(...item.Sh_item_properties);
+        // --- Logika Qty Utama ---
+        if (!isKabel && !isModemOrTiang) {
+          if (isIn) currentItem.Sh_item_qty += item.Sh_item_qty;
+          if (isOut) currentItem.Sh_item_qty -= item.Sh_item_qty;
         }
 
-        // Kurangi properties jika keluar
-        if (qtySign < 0 && item.Sh_item_properties?.length) {
-          const removeIds = item.Sh_item_properties.map(p => p.item_properties_id);
-          stockMap[itemKey].Sh_item_properties = stockMap[itemKey].Sh_item_properties.filter(
-            p => !removeIds.includes(p.item_properties_id)
-          );
+        // --- Logika Properti ---
+        if (item.Sh_item_properties?.length) {
+          item.Sh_item_properties.forEach((prop) => {
+            const existingProp = currentItem.Sh_item_properties.find(
+              (p) => p.item_properties_id === prop.item_properties_id
+            );
+
+            if (isKabel) {
+              if (isIn) {
+                if (existingProp) {
+                  existingProp.item_properties_qty += prop.item_properties_qty;
+                } else {
+                  currentItem.Sh_item_properties.push({ ...prop });
+                }
+              }
+
+              if (isOut) {
+                if (existingProp) {
+                  existingProp.item_properties_qty -= prop.item_properties_qty;
+                  if (existingProp.item_properties_qty <= 0) {
+                    currentItem.Sh_item_properties =
+                      currentItem.Sh_item_properties.filter(
+                        (p) => p.item_properties_id !== prop.item_properties_id
+                      );
+                  }
+                }
+              }
+            } else if (isModemOrTiang) {
+              if (isIn && !existingProp) {
+                currentItem.Sh_item_properties.push({ ...prop });
+              }
+
+              if (isOut) {
+                currentItem.Sh_item_properties =
+                  currentItem.Sh_item_properties.filter(
+                    (p) => p.item_properties_id !== prop.item_properties_id
+                  );
+              }
+            } else {
+              if (isIn && !existingProp) {
+                currentItem.Sh_item_properties.push({ ...prop });
+              }
+
+              if (isOut) {
+                currentItem.Sh_item_properties =
+                  currentItem.Sh_item_properties.filter(
+                    (p) => p.item_properties_id !== prop.item_properties_id
+                  );
+              }
+            }
+          });
+        }
+
+        // --- Update qty berdasarkan properti untuk Kabel, Modem, Tiang ---
+        if (isKabel || isModemOrTiang) {
+          currentItem.Sh_item_qty = currentItem.Sh_item_properties.length || 0;
         }
       });
     });
 
-    // Konversi hasil akhir ke format array dan deduplikasi properties
-    const result = Object.values(stockPerLocation).map((lokasi) => {
-      lokasi.lokasi_item = Object.values(lokasi.lokasi_item).map((item) => {
-        const seen = new Set();
-        item.Sh_item_properties = item.Sh_item_properties.filter((p) => {
-          if (seen.has(p.item_properties_id)) return false;
-          seen.add(p.item_properties_id);
-          return true;
+    // --- Filter lokasi akhir yang tidak perlu ditampilkan ---
+    const result = Object.values(stockPerLocation)
+      .filter(
+        (lokasi) =>
+          !skipKeywords.some((keyword) =>
+            lokasi.lokasi_id.toLowerCase().includes(keyword.toLowerCase())
+          )
+      )
+      .map((lokasi) => {
+        lokasi.lokasi_item = Object.values(lokasi.lokasi_item).map((item) => {
+          if (item.Sh_item_jenis !== "Kabel") {
+            const seen = new Set();
+            item.Sh_item_properties = item.Sh_item_properties.filter((p) => {
+              if (seen.has(p.item_properties_id)) return false;
+              seen.add(p.item_properties_id);
+              return true;
+            });
+          }
+          return item;
         });
-        return item;
+        return lokasi;
       });
-      return lokasi;
-    });
 
     if (result.length === 0) {
       return res.status(404).json({ message: "DATA KOSONG" });
@@ -201,25 +306,22 @@ const getStockSummaryForSO = async (req, res) => {
 
     return res.status(200).json(result);
   } catch (error) {
-    console.error("Error calculating stock per lokasi:", error);
+    console.error("Error calculating stock summary:", error);
     return res.status(500).json({ message: error.message });
   }
 };
-
 
 // CREATE
 const createStockSh = async (req, res) => {
   try {
     if (Array.isArray(req.body)) {
-      await Promise.all(req.body.map(data => Sh.create(data)));
+      await Promise.all(req.body.map((data) => Sh.create(data)));
     }
-    res.status(200).json('Create Stock History Berhasil');
+    res.status(200).json("Create Stock History Berhasil");
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
-
 
 const getStockSo = async (req, res) => {
   try {
@@ -244,11 +346,11 @@ const getStockSo = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
-// Get Detail 
+// Get Detail
 const getStockSoDetail = async (req, res) => {
   try {
     const { id } = req.params;
-    const filter = {_id: id}
+    const filter = { _id: id };
 
     const MasterItem = await So.findById(filter);
     res.status(200).json(MasterItem);
@@ -287,9 +389,7 @@ const getSoPrefix = async (req, res) => {
 
     // Cari ID dengan angka terbesar dari hasil query
     const latestId = data.reduce((maxId, currentItem) => {
-      const currentNumber = parseInt(
-        currentItem.So_id.split("-").pop() || "0"
-      );
+      const currentNumber = parseInt(currentItem.So_id.split("-").pop() || "0");
       const maxNumber = parseInt(maxId.split("-").pop() || "0");
       return currentNumber > maxNumber ? currentItem.So_id : maxId;
     }, "");
@@ -314,7 +414,7 @@ module.exports = {
   getStockSummaryByLocation,
   getStockSummaryForSO,
   createStockSh,
-  
+
   getStockSo,
   getStockSoDetail,
   getSoPrefix,

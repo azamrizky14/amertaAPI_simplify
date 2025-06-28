@@ -61,7 +61,6 @@ router.get("/TrPp/getdata/:domain/:hierarchy/:deleted?/:status?", TrPurchase.get
 router.get("/TrPp/getdataAll/:deleted?/:status?", TrPurchase.getTrPpAll);
 router.get("/TrPp/getDataById/:id", TrPurchase.getTrPpById);
 router.get("/TrPp/getPpPrefix/:date", TrPurchase.getPpPrefix);
-router.get("/TrPp/getPpPrefix/:date", TrPurchase.getPpPrefix);
 
 router.post("/TrPp/create", TrPurchase.createTrPp);
 
