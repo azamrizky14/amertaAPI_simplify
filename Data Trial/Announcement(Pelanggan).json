@@ -1,0 +1,23 @@
+{
+    "Announcement_id":"PLGN-001",
+    "Announcement_name":"Digunakan Untuk Tagihan ke pelanggan",
+    "Announcement_category":"Tagihan",
+    "Announcement_status":"Y",
+    "Announcement_list":[
+        {
+            "Announcement_list_name":"Azam Rizky Andreas",
+            "Announcement_list_paket":"15Mbps",
+            "Announcement_list_harga":"175000",
+            "Announcement_list_phone":"6281235556324"
+        }
+    ],
+    "Announcement_created":"2025-05-27",
+    "Announcement_updated":[
+        {
+            "Announcement_updated_name":"Admin",
+            "Announcement_updated_tanggal":"2025-05-27"
+        }
+    ],
+    "comment":"DIGUNAKAN UNTUK ANNOUNCEMENT TAGIHAN"
+}
+

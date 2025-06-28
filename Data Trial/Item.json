@@ -1,0 +1,58 @@
+{
+  "_id": {
+    "$oid": "67652eb7867b57a834704c2f"
+  },
+  "item_id": "240000",
+  "item_nama": "ONT",
+  "item_tipe": "Modem",
+  "item_satuan": "pcs",
+  "item_bundle": [],
+  "item_harga": [],
+  "item_keterangan": "",
+  "item_konversi": [],
+  "item_gambar": "1734684343199-LOGISTIK-AMERTA-a309370e84d7`4c07c24af88d65ff5023e5346330.png",
+  "item_user_created": "Azam",
+  "item_created": "2024-12-20",
+  "item_updated": "",
+  "item_deleted": "N",
+  "companyName": "AMERTA",
+  "companyCode": [0],
+  "item_detail": [
+    {
+        "item_detail_item_nama":"ZTE F609",
+        "item_detail_item_price":"175000",
+        "item_detail_kode_sn":"SN-123",
+        "item_detail_kode_sn_status":"Y",
+        "item_detail_satuan":"PCS",
+        "item_detail_quantity":"1",
+        "item_detail_history_location":[
+            {
+                "item_detail_location_name":""
+            }
+        ],
+        "item_detail_status_penggunaan":"Y / N",
+        "item_detail_status_kondisi":"On / Off",
+        "item_detail_history_masuk":[
+            {
+                "item_detail_history_masuk_tgl":"",
+                "item_detail_history_quantity":""
+            }
+        ],
+        "item_detail_history_penggunaan":[
+            {
+                "item_detail_history_penggunaan_id_pelanggan":"",
+                "item_detail_history_penggunaan_quantity":"",
+                "item_detail_history_penggunaan_tgl":""
+            }
+        ]
+
+    }
+],
+  "createdAt": {
+    "$date": "2024-12-20T08:45:43.236Z"
+  },
+  "updatedAt": {
+    "$date": "2024-12-23T02:45:49.561Z"
+  },
+  "__v": 0
+}

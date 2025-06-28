@@ -1,0 +1,22 @@
+{
+    "Announcement_id":"PGWS-001",
+    "Announcement_name":"Digunakan Untuk Mengirimkan Slip gaji",
+    "Announcement_category":"Pegawai-Slip",
+    "Announcement_status":"Y",
+    "Announcement_list":[
+        {
+            "Announcement_list_name":"Azam Rizky Andreas",
+            "Announcement_list_slip_file":"File Slip Gaji"
+        }
+    ],
+    "Announcement_message":"Payroll Bulannya",
+    "Announcement_created":"2025-05-27",
+    "Announcement_updated":[
+        {
+            "Announcement_updated_name":"Admin",
+            "Announcement_updated_tanggal":"2025-05-27"
+        }
+    ],
+    "comment":"DIGUNAKAN UNTUK ANNOUNCEMENT Payroll bulanan"
+}
+

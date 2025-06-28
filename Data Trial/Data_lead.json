@@ -1,0 +1,35 @@
+{
+  "Data_lead_nama": "PELANGGAN-1",
+  "Data_lead_from": "Lapangan",
+  "Data_lead_phone": "085732733793",
+  "Data_lead_status_lead": "Dihubungi",
+  "Data_lead_score": "3",
+  "Data_lead_kunjungan": [
+    {
+      "Data_lead_kunjungan_tanggal": "",
+      "Data_lead_kunjungan_respons": "",
+      "Data_lead_kunjungan_keterangan": "",
+      "Data_lead_kunjungan_evident": "",
+      "Data_lead_kunjungan_timestamp": ""
+    },
+    {
+      "Data_lead_kunjungan_tanggal": "",
+      "Data_lead_kunjungan_respons": "",
+      "Data_lead_kunjungan_keterangan": "",
+      "Data_lead_kunjungan_evident": "",
+      "Data_lead_kunjungan_timestamp": ""
+    }
+  ],
+  "Data_lead_lokasi": "GEOLOCATION",
+  "Data_lead_time": "TIMESTAMP",
+  "Data_lead_status": "Y",
+  "Data_lead_created": "20-02-2025",
+  "Data_lead_updated": [
+    {
+      "Data_lead_updated_nama": "SALES-INTERNAL",
+      "Data_lead_updated_tanggal": "20-02-2025"
+    }
+  ],
+  "companyName": "",
+  "companyCode": []
+}

@@ -1,0 +1,124 @@
+{
+    "data_pelanggan_nama": "",
+    "data_pelanggan_id": "",
+    "data_pelanggan_lokasi": "",
+    "data_pelanggan_phone":"",
+    "data_pelanggan_status": "",
+    "data_pelanggan_nik": "",
+    "data_pelanggan_domisili": {
+        "data_pelanggan_domisili_provinsi": "",
+        "data_pelanggan_domisili_kabupaten": "",
+        "data_pelanggan_domisili_kecamatan": "",
+        "data_pelanggan_domisili_desa": ""
+    },
+    "data_pelanggan_drafter":{
+        "data_pelanggan_drafter_server":"",
+        "data_pelanggan_drafter_pon":"",
+        "data_pelanggan_drafter_odc":"",
+        "data_pelanggan_drafter_odp":"",
+        "data_pelanggan_drafter_port":"",
+        "data_pelanggan_drafter_shonu":""
+    },
+    "data_pelanggan_history": {
+        "data_pelanggan_paket_history": [
+            {
+                "data_pelanggan_paket_history_nama_paket": "",
+                "data_pelanggan_paket_history_tanggal_ubah": "",
+                "data_pelanggan_paket_history_pembayaran": ""
+            }
+        ],
+        "data_pelanggan_paket_bayar_history": [
+            {
+                "data_pelanggan_paket_bayar_history_harga_paket": "",
+                "data_pelanggan_paket_bayar_history_jumlah_bayar": "",
+                "data_pelanggan_paket_bayar_history_periode_bayar": "",
+                "data_pelanggan_paket_bayar_history_waktu_pembayaran": "",
+                "data_pelanggan_paket_bayar_history_metode_pembayaran": "",
+                "data_pelanggan_paket_bayar_history_keterangan_pembayaran": ""
+            }
+        ],
+        "data_pelanggan_alat_history": [
+            {
+                "data_pelanggan_alat_history_ont_kode_sn": "",
+                "data_pelanggan_alat_history_ont_tanggal_ganti": ""
+            },
+            {
+                "data_pelanggan_alat_history_ont_kode_sn": "",
+                "data_pelanggan_alat_history_ont_tanggal_ganti": ""
+            }
+        ],
+        "data_pelanggan_ticket_history": [
+            {
+                "data_pelanggan_ticket_id": "",
+                "data_pelanggan_ticket_history_nama_laporan": "",
+                "data_pelanggan_ticket_history_keterangan": "",
+                "data_pelanggan_ticket_history_tanggal_dibuat": "",
+                "data_pelanggan_ticket_history_tanggal_selesai": ""
+            },
+            {
+                "data_pelanggan_ticket_id": "",
+                "data_pelanggan_ticket_history_nama_laporan": "",
+                "data_pelanggan_ticket_history_keterangan": "",
+                "data_pelanggan_ticket_history_tanggal_dibuat": "",
+                "data_pelanggan_ticket_history_tanggal_selesai": ""
+            }
+        ]
+    },
+    "data_pelanggan_paket": {
+        "data_pelanggan_paket_nama": "",
+        "data_pelanggan_paket_jatuh_tempo": "",
+        "data_pelanggan_paket_terakhir_bayar": "",
+        "data_pelanggan_paket_bayar":"0"
+    },
+    "data_pelanggan_tanggal": {
+        "data_pelanggan_tanggal_registrasi": "",
+        "data_pelanggan_tanggal_putus": ""
+    },
+    "data_pelanggan_alamat": {
+        "data_pelanggan_alamat_ktp": "",
+        "data_pelanggan_alamat_lokasi_pasang": "",
+        "data_pelanggan_alamat_titik_koordinat": ""
+    },
+    "data_pelanggan_pic": {
+        "data_pelanggan_pic_nama": "",
+        "data_pelanggan_pic_alamat": "",
+        "data_pelanggan_pic_phone": "",
+        "data_pelanggan_pic_nik": ""
+    },
+    "data_pelanggan_mikrotik_access": {
+        "data_pelanggan_mikrotik_access_tipe": "",
+        "data_pelanggan_mikrotik_access_username": "",
+        "data_pelanggan_mikrotik_access_password": "",
+        "data_pelanggan_mikrotik_access_router": "",
+        "data_pelanggan_mikrotik_access_profile": "",
+        "data_pelanggan_mikrotik_access_usersecret": "",
+        "data_pelanggan_mikrotik_access_passwordsecret": "",
+        "data_pelanggan_mikrotik_access_local_address": "",
+        "data_pelanggan_mikrotik_access_remote_address": "",
+        "data_pelanggan_mikrotik_access_mac_address": ""
+    },
+    "data_pelanggan_afiliasi": {
+        "data_pelanggan_afiliasi_pic_pasang": [
+            {
+                "data_pelanggan_afiliasi_pic_pasang_nama": "",
+                "data_pelanggan_afiliasi_pic_pasang_nama_tim": ""
+            },
+            {
+                "data_pelanggan_afiliasi_pic_pasang_nama": "",
+                "data_pelanggan_afiliasi_pic_pasang_nama_tim": ""
+            }
+        ],
+        "data_pelanggan_afiliasi_pic_sales": ""
+    },
+    "data_pelanggan_created":"",
+    "data_pelanggan_updated":[
+        {
+            "data_pelanggan_updated_nama":"",
+            "data_pelanggan_updated_tanggal":""
+        }
+    ],
+    "companyName":"",
+    "companyCode":[
+        {}
+    ]
+}

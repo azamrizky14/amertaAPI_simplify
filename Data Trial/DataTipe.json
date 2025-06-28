@@ -1,0 +1,17 @@
+{
+  "data_tipe_nama": "",
+  "data_tipe_keterangan": "",
+  "data_tipe_harga": "",
+  "data_tipe_pembayaran": "",
+  "data_tipe_status": "",
+  "data_tipe_profile": "",
+  "data_tipe_created": "",
+  "data_tipe_updated": [
+    {
+      "data_tipe_updated_nama": "",
+      "data_tipe_updated_tanggal": ""
+    }
+  ],
+  "companyCode": "",
+  "companyCode": [{}]
+}

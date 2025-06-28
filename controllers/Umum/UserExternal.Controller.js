@@ -256,7 +256,7 @@ async function loginUser(req, res) {
 
 
 // Controller method to list companies by companyCode
-async function listByCompanyCode(req, res) {
+async function listBycompanyCode(req, res) {
   try {
     const companyCode = req.body.companyCode;
 
@@ -301,6 +301,6 @@ module.exports = {
   getUserById,
   getUserByRole,
 
-  listByCompanyCode
+  listBycompanyCode
   // Add more controller methods as needed
 };

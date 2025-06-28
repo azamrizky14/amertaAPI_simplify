@@ -1,0 +1,35 @@
+{
+    "Tr_task_id": "",
+    "Tr_task_nama": "",
+    "Tr_task_divisi": "PSM",
+    "Tr_task_pic": [
+        {
+            "Tr_task_pic_nama": "",
+            "Tr_task_pic_divisi": ""
+        },
+        {
+            "Tr_task_pic_nama": "",
+            "Tr_task_pic_divisi": ""
+        }
+    ],
+    "Tr_task_list": [
+        {
+            "Tr_task_list_pelanggan": "",
+            "Tr_task_list_id_pelanggan": "",
+            "Tr_task_list_ticket": "",
+            "Tr_task_list_ticket_id": "",
+            "Tr_task_list_ticket_completition": ""
+        }
+    ],
+    "Tr_task_created": "",
+    "Tr_task_updated": [
+        {
+            "Tr_task_updated_nama": "",
+            "Tr_task_updated_tanggal": ""
+        }
+    ],
+    "Tr_task_status": "",
+    "Tr_task_status_completition": "90%",
+    "CompanyName":"",
+    "CompanyCode":[]
+}

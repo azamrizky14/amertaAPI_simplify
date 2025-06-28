@@ -15,7 +15,7 @@ router.get("/detailFilter/:fields/:_id", companyController.getCompanyById);
 
 // POST ROUTER
 router.post("/create", upload.single('companyLogo'), companyController.createCompany)
-router.post("/listByCompanyCode", companyController.listByCompanyCode);
+router.post("/listBycompanyCode", companyController.listBycompanyCode);
 
 // PUT ROUTER
 router.put("/update/:_id", upload.single('companyLogo'), companyController.updateCompany)

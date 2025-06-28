@@ -24,8 +24,9 @@ const moveTempImage = async (req, res) => {
         return res.status(400).json({ message: "Filename and finalLocation required" });
     }
 
-    const tempPath = path.join(__dirname, '../images/temp', filename); // <--- temp di dalam images
-    const finalPath = path.join(__dirname, '../images', finalLocation, filename);
+    const tempPath = path.join(process.cwd(), 'images', 'temp', filename);
+    const finalPath = path.join(process.cwd(), 'images', finalLocation, filename);
+
 
     // Pastikan folder tujuan ada
     fs.mkdir(path.dirname(finalPath), { recursive: true }, (err) => {
@@ -54,7 +55,7 @@ const removeTempImage = async (req, res) => {
       return res.status(400).json({ message: "Filename required" });
     }
 
-    const tempPath = path.join(__dirname, '../images/temp', filename);
+    const tempPath = path.join(process.cwd(), 'images', 'temp', filename);
 
     fs.unlink(tempPath, (err) => {
       if (err) {
@@ -86,8 +87,8 @@ const moveMultipleTempImages = async (req, res) => {
         throw new Error("Filename and finalLocation required in each item");
       }
 
-      const tempPath = path.join(__dirname, '../images/temp', filename);
-      const finalPath = path.join(__dirname, '../images', finalLocation, filename);
+    const tempPath = path.join(process.cwd(), 'images', 'temp', filename);
+    const finalPath = path.join(process.cwd(), 'images', finalLocation, filename);
 
       // Pastikan folder tujuan dibuat sebelum pindah
       return new Promise((resolve, reject) => {
@@ -128,7 +129,7 @@ const removeMultipleTempImages = async (req, res) => {
         throw new Error("Filename required in each item");
       }
 
-      const tempPath = path.join(__dirname, '../images/temp', filename);
+      const tempPath = path.join(process.cwd(), 'images', 'temp', filename);
 
       return new Promise((resolve, reject) => {
         fs.unlink(tempPath, (err) => {

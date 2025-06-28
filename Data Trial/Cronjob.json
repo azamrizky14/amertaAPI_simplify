@@ -1,0 +1,22 @@
+{
+  "Cronjob_name": "Updated tr ticket",
+  "Cronjob_time": "0001**",
+  "Cronjob_status": "Y",
+  "Cronjob_type": "update_data_pelanggan",
+  "Cronjob_newupdate": {
+    "Cronjob_newupdate_id": "022406000",
+    "Cronjob_data": {
+        "Cronjob_data_paket":"15Mbps",
+        "Cronjob_data_paket_bayar":"111000"
+    }
+  },
+  "Cronjob_created": "2025-06-05",
+  "Cronjob_updated": [
+    {
+      "Cronjob_updated_nama": "Admin",
+      "Cronjob_updated_tgl": "2025-06-05"
+    }
+  ],
+  "companyCode": "Amerta-Pasuruan",
+  "companyCode": [1, 2]
+}

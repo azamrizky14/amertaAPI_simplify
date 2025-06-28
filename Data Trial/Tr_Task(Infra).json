@@ -1,0 +1,47 @@
+{
+    "Tr_task_id": "INFRA-001",
+    "Tr_task_nama": "Penarikan Kabel",
+    "Tr_task_divisi": "INFRA",
+    "Tr_task_pic": [
+        {
+            "Tr_task_pic_nama": "",
+            "Tr_task_pic_divisi": ""
+        },
+        {
+            "Tr_task_pic_nama": "",
+            "Tr_task_pic_divisi": ""
+        }
+    ],
+    "Tr_task_list": [
+        {
+            "Tr_task_list_nama_pekerjaan": "",
+            "Tr_task_list_completition": "",
+            "Tr_task_list_team":[
+                {
+                    "Tr_task_list_team_nama":"",
+                    "Tr_task_list_team_divisi":""
+                },
+                {
+                    "Tr_task_list_team_nama":"",
+                    "Tr_task_list_team_divisi":""
+                }
+            ],
+            "Tr_task_list_material":[
+                {
+                    
+                }
+            ]
+        }
+    ],
+    "Tr_task_created": "01-02-2025",
+    "Tr_task_updated": [
+        {
+            "Tr_task_updated_nama": "",
+            "Tr_task_updated_tanggal": ""
+        }
+    ],
+    "Tr_task_status": "Y",
+    "Tr_task_status_completition": "90%",
+    "companyCode":"",
+    "companyCode":[]
+}

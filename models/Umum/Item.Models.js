@@ -12,6 +12,9 @@ const ItemSchema = mongoose.Schema(
       type: String,
       // enum: ['material', 'aset']
     },
+    item_list: {
+      type: Array
+    },
     item_satuan: {
       type: String,
     },
@@ -25,8 +28,7 @@ const ItemSchema = mongoose.Schema(
       type: String,
     },
     item_detail: {
-      type: Object,
-      default: {}, // Optional: Provide a default value
+      type: Array
     },
     item_brand: {
       type: String,
@@ -55,7 +57,7 @@ const ItemSchema = mongoose.Schema(
     companyCode: {
       type: Array
     }
-},
+  },
   {
     timestamps: true,
   }

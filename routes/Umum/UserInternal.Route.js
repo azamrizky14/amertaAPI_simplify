@@ -17,6 +17,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage })
 // Define routes and map them to controller methods
 
+
 // GET ROUTER
 router.get("/detail/:userId", userInternalController.getUserById);
 router.get("/", userInternalController.getAllUsers);
@@ -26,7 +27,7 @@ router.get("/getUserByRole/:companyName/:userRole?", userInternalController.getU
 router.post("/create", upload.single('userImage'), userInternalController.createUser)
 router.post("/createOne", userInternalController.createUserOne);
 router.post("/login", userInternalController.loginUser);
-router.post("/listByCompanyCode", userInternalController.listByCompanyCode);
+router.post("/listBycompanyCode", userInternalController.listBycompanyCode);
 
 // PUT ROUTER
 router.put("/updateOne/:userId", userInternalController.updateUserOne);

@@ -1,0 +1,25 @@
+{
+  "Tr_crm_id": "CRM-001",
+  "Tr_crm_nama": "CRM Pembayaran",
+  "Tr_crm_kategori": "Office",
+  "Tr_crm_detail": {
+    "Tr_crm_detail_id": "022406000",
+    "Tr_crm_detail_nama": "NANANG CAHYO RUSBIANTO ",
+    "Tr_crm_detail_response": "Nanti Dibayar",
+    "Tr_crm_detail_tanggal": "20-02-2025",
+    "Tr_crm_detail_type_pelanggan": "Y",
+    "Tr_crm_detail_feedback": "Kemungkinan nanti akan dibayar"
+  },
+  "Tr_crm_lokasi": "",
+  "Tr_crm_time": "",
+  "Tr_crm_status": "Y",
+  "Tr_crm_created": "20-02-2025",
+  "Tr_crm_updated": [
+    {
+      "Tr_crm_updated_nama": "AdminCRM",
+      "Tr_crm_updated_tanggal": "20-02-2025"
+    }
+  ],
+  "companyCode": "",
+  "company": []
+}
