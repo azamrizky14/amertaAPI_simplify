@@ -25,9 +25,11 @@ router.get("/getAllStockTotalInOut/:domain/:hierarchy/:deleted?", itemController
 
 
 router.post("/updateNewStockDetail", itemController.updateNewItemDetail);
-router.put("/updateEvidentStockDetail", itemController.updateEvidentItemDetail);
-router.put("/updateBonMaterialItemDetail", itemController.updateBonMaterialItemDetail);
 
+router.put("/updateBonMaterialItemDetail", itemController.updateBonMaterialItemDetail);
+router.put("/updateEvidentStockDetail", itemController.updateEvidentItemDetail);
+router.put("/updateReturItemDetail", itemController.updateReturItemDetail);
+router.put("/updateClosingMaterialItemDetail", itemController.updateClosingMaterialItemDetail);
 router.put("/updateCurrentStockDetail", itemController.updateCurrentItemDetail);
 
 module.exports = router;
