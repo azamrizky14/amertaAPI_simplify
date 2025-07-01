@@ -121,7 +121,7 @@ const getAllMasterItemWithLocation = async (req, res) => {
       };
     }
 
-    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1);
+    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1.2);
     const filter = { companyCode: newDomain };
 
     if (deleted) {

@@ -50,7 +50,7 @@ const downloadImage = async (imageUrl) => {
 
     return fileName; // Hanya kembalikan nama file untuk disimpan di database
   } catch (error) {
-    // console.error("Gagal mengunduh gambar:", imageUrl, error.message);
+    console.error("Gagal mengunduh gambar:", imageUrl, error.message);
     return null; // Jika gagal, return null agar tidak menyimpan data yang salah
   }
 };
@@ -382,6 +382,7 @@ const createTrTeknisGambar = async (req, res) => {
 };
 
 const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
+  console.log('tes')
   try {
     let {
       Tr_teknis_logistik_id,
@@ -455,6 +456,7 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
           for (let i = 0; i < images.length; i++) {
             let img = images[i];
             if (typeof img === "string" && img.startsWith("http")) {
+              console.log('data image', img)
               const downloadedFileName = await downloadImage(img);
               if (downloadedFileName) {
                 Tr_teknis_images[field][i] = downloadedFileName; // Ganti URL dengan nama file lokal

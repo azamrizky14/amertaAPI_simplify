@@ -40,6 +40,7 @@ async function listBycompanyCode(req, res) {
 // Controller method to get all users
 async function getAllDomain(req, res) {
   try {
+    console.log('tes')
     // Retrieve all users from the database
     const users = await Company.find({ isDeleted: "N" });
     res.json(users);

@@ -13,7 +13,7 @@ const getTrPo = async (req, res) => {
     const { domain, hierarchy, deleted, status } = req.params;
 
     // Create a filter object dynamically
-    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1);
+    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1.2);
     const filter = { companyCode: newDomain };
 
     // Add optional filters if provided
@@ -26,7 +26,8 @@ const getTrPo = async (req, res) => {
     // Remove `lokasi_detail` from the response
     const filteredData = TrPo.map((location) => {
       const { Tr_po_item, ...rest } = location; // Destructure and exclude `lokasi_detail`
-      return rest;
+      return location;
+      // return rest;
     });
 
     // Check if any data was found

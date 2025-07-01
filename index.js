@@ -97,8 +97,8 @@ app.get("/ping", (req, res) => {
 
 mongoose
   .connect(
-    "mongodb://103.178.13.50:136/internal-amerta"
-    // "mongodb://103.178.13.50:236/internal-amerta"
+    // "mongodb://103.178.13.50:136/internal-amerta"
+    "mongodb://103.178.13.50:236/internal-amerta"
 
     // "mongodb://localhost:27017/internal-amerta"
     // "mongodb://root:ServerAmerta2024@77.37.47.90:27017/dbAmerta"
