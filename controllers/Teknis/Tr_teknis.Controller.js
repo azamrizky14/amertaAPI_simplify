@@ -382,7 +382,6 @@ const createTrTeknisGambar = async (req, res) => {
 };
 
 const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
-  console.log('tes')
   try {
     let {
       Tr_teknis_logistik_id,
@@ -591,6 +590,85 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
     res.status(500).json({ message: "An error occurred while updating data" });
   }
 };
+
+const updateTrTeknisWorkOrderTerpakaiNonGambar = async (req, res) => {
+  try {
+    const {
+      Tr_teknis_logistik_id,
+      Tr_teknis_work_order_terpakai_material,
+      Tr_teknis_work_order_retur,
+      // Tr_teknis_jenis,
+      Tr_teknis_kategori,
+      Tr_teknis_trouble,
+      Tr_teknis_action,
+      Tr_teknis_team,
+      Tr_teknis_pelanggan_id,
+      Tr_teknis_pelanggan_nama,
+      Tr_teknis_pelanggan_server,
+      Tr_teknis_user_updated,
+      Tr_teknis_keterangan,
+      Tr_teknis_created,
+      Tr_teknis_tanggal,
+      Tr_teknis_work_order_images, // gambar dikirim langsung dari frontend
+    } = req.body;
+
+    const existingData = await Tr_teknis.findOne({ Tr_teknis_logistik_id });
+    if (!existingData) {
+      return res.status(404).json({ message: "Record not found" });
+    }
+
+    const materialTerpakai = Array.isArray(Tr_teknis_work_order_terpakai_material)
+      ? Tr_teknis_work_order_terpakai_material
+      : typeof Tr_teknis_work_order_terpakai_material === "string"
+      ? JSON.parse(Tr_teknis_work_order_terpakai_material)
+      : [];
+
+    const materialKembali = Array.isArray(Tr_teknis_work_order_retur)
+      ? Tr_teknis_work_order_retur
+      : typeof Tr_teknis_work_order_retur === "string"
+      ? JSON.parse(Tr_teknis_work_order_retur)
+      : [];
+
+    const team = typeof Tr_teknis_team === "string" ? JSON.parse(Tr_teknis_team) : Tr_teknis_team;
+
+    const workOrderData = {
+      _id: new mongoose.Types.ObjectId(),
+      Tr_teknis_pelanggan_id,
+      Tr_teknis_kategori,
+      Tr_teknis_pelanggan_nama,
+      Tr_teknis_pelanggan_server,
+      Tr_teknis_user_updated,
+      Tr_teknis_keterangan,
+      Tr_teknis_created,
+      Tr_teknis_tanggal,
+      Tr_teknis_logistik_id,
+      Tr_teknis_team: team,
+      Tr_teknis_work_order_terpakai_material: materialTerpakai,
+      Tr_teknis_work_order_retur: materialKembali,
+      Tr_teknis_work_order_images, // langsung simpan dari frontend
+    };
+
+    if (Tr_teknis_kategori === "MT") {
+      workOrderData.Tr_teknis_trouble = Tr_teknis_trouble;
+      workOrderData.Tr_teknis_action = Tr_teknis_action;
+    }
+
+    const updatedRecord = await Tr_teknis.findByIdAndUpdate(
+      existingData._id,
+      { $push: { Tr_teknis_work_order_terpakai: workOrderData } },
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: "Data updated successfully",
+      updatedData: updatedRecord,
+    });
+  } catch (error) {
+    console.error("Error during data update:", error);
+    res.status(500).json({ message: "An error occurred while updating data" });
+  }
+};
+
 
 
 const updateTrTeknisEvidentById = async (req, res) => {
@@ -999,6 +1077,7 @@ module.exports = {
   createTrTeknis,
   createTrTeknisGambar,
   updateTrTeknisWorkOrderTerpakai,
+  updateTrTeknisWorkOrderTerpakaiNonGambar,
   updateTrTeknis,
   updateTrTeknisGambar,
   updateTrTeknisEvidentById,
