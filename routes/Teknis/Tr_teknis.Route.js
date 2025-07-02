@@ -2,21 +2,7 @@ const express = require("express");
 const multer = require("multer");
 
 const router = express.Router();
-const {
-    getTrTeknis,
-    getTrTeknisById,
-    getTrTeknisEvidentById,
-    getTrTeknisEvidentByMonth,
-    createTrTeknis,
-    createTrTeknisGambar,
-    updateTrTeknisWorkOrderTerpakai,
-    updateTrTeknis,
-    updateTrTeknisGambar,
-    updateTrTeknisEvidentById,
-    getBonPrefix,
-    getAllWorkOrders,
-    getTrTeknisEvident
-} = require('../../controllers/Teknis/Tr_teknis.Controller.js');
+const TrTeknis = require('../../controllers/Teknis/Tr_teknis.Controller.js');
 // / Multer storage configuration
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
@@ -31,22 +17,23 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage })
     // ----
 
-router.get("/Trteknis/getTotalData/:domain/:hierarchy/:type/:month?", getAllWorkOrders);
-router.get("/Trteknis/getdata/:domain/:hierarchy/:deleted?/:type?/:status?", getTrTeknis);
-router.get("/Trteknis/getdataEvident/:domain/:hierarchy/:deleted?/:type?/:status?", getTrTeknisEvident);
-router.get("/Trteknis/getdataEvidentByMonth/:domain/:hierarchy/:deleted?/:type?/:month?", getTrTeknisEvidentByMonth);
-router.get("/Trteknis/getbyid/:id", getTrTeknisById);
-router.get("/Trteknis/getEvidentbyid/:logistikType/:logistikdate/:logistikNumber/:id", getTrTeknisEvidentById);
-router.get("/Trteknis/getBonPrefix/:type/:date/:domain", getBonPrefix); 
+router.get("/Trteknis/getTotalData/:domain/:hierarchy/:type/:month?", TrTeknis.getAllWorkOrders);
+router.get("/Trteknis/getdata/:domain/:hierarchy/:deleted?/:type?/:status?", TrTeknis.getTrTeknis);
+router.get("/Trteknis/getdataEvident/:domain/:hierarchy/:deleted?/:type?/:status?", TrTeknis.getTrTeknisEvident);
+router.get("/Trteknis/getdataEvidentByMonth/:domain/:hierarchy/:deleted?/:type?/:month?", TrTeknis.getTrTeknisEvidentByMonth);
+router.get("/Trteknis/getbyid/:id", TrTeknis.getTrTeknisById);
+router.get("/Trteknis/getEvidentbyid/:logistikType/:logistikdate/:logistikNumber/:id", TrTeknis.getTrTeknisEvidentById);
+router.get("/Trteknis/getBonPrefix/:type/:date/:domain", TrTeknis.getBonPrefix); 
 
-router.post("/Trteknis/create", createTrTeknis);
-router.post("/Trteknis/createimage", upload.any(), createTrTeknisGambar);
+router.post("/Trteknis/create", TrTeknis.createTrTeknis);
+router.post("/Trteknis/createimage", upload.any(), TrTeknis.createTrTeknisGambar);
 
 // update a product
-router.put("/Trteknis/updatebyid/:id", updateTrTeknis);
-router.put("/Trteknis/updateImageById/:id", upload.any(), updateTrTeknisGambar);
-router.put("/Trteknis/updateWorkOrder", upload.any(), updateTrTeknisWorkOrderTerpakai);
-router.put("/Trteknis/updateEvidentbyid/:logistikType/:logistikdate/:logistikNumber/:id", upload.any(), updateTrTeknisEvidentById);
+router.put("/Trteknis/updatebyid/:id", TrTeknis.updateTrTeknis);
+router.put("/Trteknis/updateWorkOrderNonGambar", TrTeknis.updateTrTeknisWorkOrderTerpakaiNonGambar);
+router.put("/Trteknis/updateImageById/:id", upload.any(), TrTeknis.updateTrTeknisGambar);
+router.put("/Trteknis/updateWorkOrder", upload.any(), TrTeknis.updateTrTeknisWorkOrderTerpakai);
+router.put("/Trteknis/updateEvidentbyid/:logistikType/:logistikdate/:logistikNumber/:id", upload.any(), TrTeknis.updateTrTeknisEvidentById);
 
 
 
