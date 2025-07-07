@@ -7,6 +7,7 @@ const TrCrmController = require("../../controllers/Pelayanan/Tr_Crm.Controller")
 router.get("/getTrCrm/:domain/:hierarchy/:deleted?", TrCrmController.getTrCrm);
 router.get("/getTrCrmById/:id", TrCrmController.getTrCrmById);
 router.get("/getTrCrmByKategori/:domain/:hierarchy/:kategori/:deleted?", TrCrmController.getTrCrmByKategori);
+router.get("/countTrCrmByMonth/:domain/:hierarchy/:deleted", TrCrmController.countTrCrmByMonth )
 
 router.get("/getTrCrmPrefix/:type/:date", TrCrmController.getTrCrmPrefix);
 // POST
