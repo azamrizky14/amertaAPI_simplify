@@ -16,11 +16,12 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage })
     // ----
-
-router.get("/Trteknis/getTotalData/:domain/:hierarchy/:type/:month?", TrTeknis.getAllWorkOrders);
+    
+router.get("/Trteknis/getTotalDataBulanan/:domain/:hierarchy/:type", TrTeknis.getAllWorkOrders);
+router.get("/Trteknis/getMonthlyDataPerYear/:domain/:hierarchy/:type", TrTeknis.getMonthlyDataPerYear);
 router.get("/Trteknis/getdata/:domain/:hierarchy/:deleted?/:type?/:status?", TrTeknis.getTrTeknis);
 router.get("/Trteknis/getdataEvident/:domain/:hierarchy/:deleted?/:type?/:status?", TrTeknis.getTrTeknisEvident);
-router.get("/Trteknis/getdataEvidentByMonth/:domain/:hierarchy/:deleted?/:type?/:month?", TrTeknis.getTrTeknisEvidentByMonth);
+router.get("/Trteknis/getdataEvidentByBonAndMonth/:domain/:hierarchy/:deleted?/:type?/:month?", TrTeknis.getTrTeknisEvidentByMonth);
 router.get("/Trteknis/getbyid/:id", TrTeknis.getTrTeknisById);
 router.get("/Trteknis/getEvidentbyid/:logistikType/:logistikdate/:logistikNumber/:id", TrTeknis.getTrTeknisEvidentById);
 router.get("/Trteknis/getBonPrefix/:type/:date/:domain", TrTeknis.getBonPrefix); 
@@ -33,7 +34,7 @@ router.put("/Trteknis/updatebyid/:id", TrTeknis.updateTrTeknis);
 router.put("/Trteknis/updateWorkOrderNonGambar", TrTeknis.updateTrTeknisWorkOrderTerpakaiNonGambar);
 router.put("/Trteknis/updateImageById/:id", upload.any(), TrTeknis.updateTrTeknisGambar);
 router.put("/Trteknis/updateWorkOrder", upload.any(), TrTeknis.updateTrTeknisWorkOrderTerpakai);
-router.put("/Trteknis/updateEvidentbyid/:logistikType/:logistikdate/:logistikNumber/:id", upload.any(), TrTeknis.updateTrTeknisEvidentById);
+router.put("/Trteknis/updateEvidentbyid/:logistikType/:logistikdate/:logistikNumber/:id", TrTeknis.updateTrTeknisEvidentById);
 
 
 

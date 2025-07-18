@@ -10,7 +10,10 @@ router.get("/getDataLeadByStatusLead/:domain/:hierarchy/:statuslead/:deleted?", 
 router.get("/getDataLeadByAfiliasi/:afiliasi", DataLeadController.getDataLeadByAfiliasi);
 router.get("/countDataLeadByAfiliasi/:afiliasi", DataLeadController.countDataLeadByAfiliasi);
 router.get("/countDataLeadByMonth/:domain/:hierarchy/:deleted", DataLeadController.countDataLeadByMonth);
+router.get("/countDataLeadByDate/:domain/:hierarchy/:deleted", DataLeadController.countDataLeadByDate);
 router.get("/countDataLeadByAfiliasiandMonth/:afiliasi", DataLeadController.countDataLeadByAfiliasiandMonth);
+router.get("/countDataLeadByAfiliasiandDate/:afiliasi", DataLeadController.countDataLeadByAfiliasiandDate);
+
 router.get("/getDataLeadPrefix/:type/:date", DataLeadController.getDataLeadPrefix);
 // POST
 router.post("/createDataLead", DataLeadController.createDataLead);

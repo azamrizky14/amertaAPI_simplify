@@ -138,90 +138,180 @@ const getTrTeknisEvident = async (req, res) => {
 
 const getTrTeknisEvidentByMonth = async (req, res) => {
   try {
-    const { domain, deleted, type, hierarchy, month } =
-      req.params;
+    const { domain, hierarchy, type, month, mode = "data" } = req.params;
 
-    // Create a filter object dynamically
-    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1)
-    const filter = { companyCode: newDomain };
+    // Ambil companyCode dari helper
+    const companyCode = await findByHierarchyAndDomain(hierarchy, domain, 1.1);
 
-    // Add optional filters if provided
-    if (deleted) filter.Tr_teknis_deleted = deleted;
-    if (type) filter.Tr_teknis_jenis = type;
+    // Buat query dasar
+    const query = {
+      companyCode,
+      Tr_teknis_deleted: "N",
+    };
 
-    // Add filter for Tr_teknis_created if start and/or end dates are provided
-    if (month) {
-      filter.Tr_teknis_created = {};
-      if (month) filter.Tr_teknis_created = { $regex: `^${month}` };
-    }
-    
-    // Fetch the data based on the dynamic filter and sort by Tr_teknis_created
-    const TrTeknis = await Tr_teknis.find(filter).sort({
-      Tr_teknis_created: -1,
-    }); // Sort by newest date
+    if (type) query.Tr_teknis_jenis = type;
 
-    // Check if any data was found
-    if (TrTeknis.length > 0) {
-      // Use flatMap to combine all Tr_teknis_work_order_terpakai into a single array
-      const combinedResult = TrTeknis.flatMap(
-        (item) => item.Tr_teknis_work_order_terpakai || []
-      );
+    // Ambil hanya field yang dibutuhkan
+    const data = await Tr_teknis.find(
+      query,
+      "Tr_teknis_work_order_terpakai"
+    );
 
-      // const reversedData = combinedResult.reverse();
-      // Sort the combinedResult by Tr_teknis_created (newest to latest)
-      const sortedResult = combinedResult.sort((a, b) => {
-        const dateA = new Date(a.Tr_teknis_created);
-        const dateB = new Date(b.Tr_teknis_created);
-        return dateB - dateA; // Sort descending
-      });
+    // Flatten semua work order yang ada
+    const allWorkOrders = data.flatMap(item => item.Tr_teknis_work_order_terpakai || []);
 
-      return res.status(200).json(sortedResult);
+    // Parse bulan untuk filter tanggal
+    const startDate = new Date(`${month}-01T00:00:00Z`);
+    const endDate = new Date(startDate);
+    endDate.setMonth(startDate.getMonth() + 1);
+
+    // Filter berdasarkan tanggal dan jenis (jika ada)
+    const filteredWorkOrders = allWorkOrders.filter(item => {
+      const date = new Date(item.Tr_teknis_tanggal);
+      const isInMonth = date >= startDate && date < endDate;
+      const isTypeMatch = type ? item.Tr_teknis_kategori === type : true;
+      return isInMonth && isTypeMatch;
+    });
+
+    // Output sesuai mode
+    if (mode === "count") {
+      return res.status(200).json({ total: filteredWorkOrders.length });
     } else {
-      return res.status(404).json({ message: "DATA KOSONG" });
+      return res.status(200).json(filteredWorkOrders);
     }
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching work order data:", error);
     return res.status(500).json({ message: error.message });
   }
 };
 
+
+// const getAllWorkOrders = async (req, res) => {
+//   try {
+//     const { hierarchy, domain, type, month } = req.params;
+
+//     let query = { Tr_teknis_deleted: "N" };
+//     query.companyCode = await findByHierarchyAndDomain(hierarchy, domain, 1.1)
+
+//     // Mengambil semua data Tr_teknis_work_order_terpakai
+//     const orders = await Tr_teknis.find(
+//       query,
+//       "Tr_teknis_work_order_terpakai Tr_teknis_kategori Tr_teknis_tanggal"
+//     );
+
+//     // Meratakan array Tr_teknis_work_order_terpakai
+//     const allWorkOrders = orders
+//       .map((order) => order.Tr_teknis_work_order_terpakai)
+//       .flat();
+
+//     // Filter allWorkOrders berdasarkan type dan month
+//     const startDate = new Date(`${month}-01T00:00:00Z`); // 1st day of the month
+//     const endDate = new Date(startDate);
+//     endDate.setMonth(startDate.getMonth() + 1); // 1st day of next month
+
+//     const filteredWorkOrders = allWorkOrders.filter((order) => {
+//       const orderDate = new Date(order.Tr_teknis_tanggal);
+//       const isSameMonth = orderDate >= startDate && orderDate < endDate;
+//       const isSameType = order.Tr_teknis_kategori === type;
+//       return isSameMonth && isSameType;
+//     });
+
+//     // Mengirimkan hasil filter sebagai response JSON
+//     res.status(200).json(filteredWorkOrders.length);
+//   } catch (error) {
+//     console.error("Error fetching work orders:", error);
+//     res
+//       .status(500)
+//       .json({ message: "Error fetching work orders", error: error.message });
+//   }
+// };
+
 const getAllWorkOrders = async (req, res) => {
   try {
-    const { hierarchy, domain, type, month } = req.params;
+    const { domain, hierarchy, type } = req.params;
+    const { month, range, deleted, mode } = req.query;
 
-    let query = { Tr_teknis_deleted: "N" };
-    query.companyCode = await findByHierarchyAndDomain(hierarchy, domain, 1.1)
+    const companyCodes = await findByHierarchyAndDomain(hierarchy, domain, 1.1);
 
-    // Mengambil semua data Tr_teknis_work_order_terpakai
-    const orders = await Tr_teknis.find(
-      query,
-      "Tr_teknis_work_order_terpakai Tr_teknis_kategori Tr_teknis_tanggal"
-    );
+    // Siapkan kondisi awal
+    const matchStage = {
+      companyCode: companyCodes,
+      ...(deleted && { Tr_teknis_deleted: deleted }),
+    };
 
-    // Meratakan array Tr_teknis_work_order_terpakai
-    const allWorkOrders = orders
-      .map((order) => order.Tr_teknis_work_order_terpakai)
-      .flat();
+    // Siapkan kondisi filter internal dalam $filter
+    const dateFilters = [];
 
-    // Filter allWorkOrders berdasarkan type dan month
-    const startDate = new Date(`${month}-01T00:00:00Z`); // 1st day of the month
-    const endDate = new Date(startDate);
-    endDate.setMonth(startDate.getMonth() + 1); // 1st day of next month
+    if (month) {
+      dateFilters.push({
+        $regexMatch: {
+          input: "$$item.Tr_teknis_tanggal",
+          regex: `^${month}`,
+        },
+      });
+    } else if (range) {
+      const monthsBack = parseInt(range, 10);
+      const today = new Date();
+      const past = new Date();
+      past.setMonth(today.getMonth() - monthsBack);
 
-    const filteredWorkOrders = allWorkOrders.filter((order) => {
-      const orderDate = new Date(order.Tr_teknis_tanggal);
-      const isSameMonth = orderDate >= startDate && orderDate < endDate;
-      const isSameType = order.Tr_teknis_kategori === type;
-      return isSameMonth && isSameType;
-    });
+      const pastStr = past.toISOString().slice(0, 10); // format YYYY-MM-DD
 
-    // Mengirimkan hasil filter sebagai response JSON
-    res.status(200).json(filteredWorkOrders.length);
+      dateFilters.push({
+        $gte: ["$$item.Tr_teknis_tanggal", pastStr],
+      });
+    }
+
+    if (type) {
+      dateFilters.push({
+        $eq: ["$$item.Tr_teknis_kategori", type],
+      });
+    }
+
+    const pipeline = [
+      { $match: matchStage },
+      {
+        $project: {
+          Tr_teknis_work_order_terpakai: {
+            $filter: {
+              input: "$Tr_teknis_work_order_terpakai",
+              as: "item",
+              cond: dateFilters.length
+                ? { $and: dateFilters }
+                : { $toBool: true },
+            },
+          },
+        },
+      },
+      {
+        $match: {
+          "Tr_teknis_work_order_terpakai.0": { $exists: true },
+        },
+      },
+      {
+        $unwind: "$Tr_teknis_work_order_terpakai",
+      },
+      {
+        $replaceRoot: {
+          newRoot: "$Tr_teknis_work_order_terpakai",
+        },
+      },
+    ];
+
+    const result = await Tr_teknis.aggregate(pipeline);
+
+    if (mode === "data") {
+      return res.status(200).json(result);
+    } else {
+      return res.status(200).json(result.length);
+    }
+
   } catch (error) {
     console.error("Error fetching work orders:", error);
-    res
-      .status(500)
-      .json({ message: "Error fetching work orders", error: error.message });
+    res.status(500).json({
+      message: "Error fetching work orders",
+      error: error.message,
+    });
   }
 };
 
@@ -609,6 +699,8 @@ const updateTrTeknisWorkOrderTerpakaiNonGambar = async (req, res) => {
       Tr_teknis_keterangan,
       Tr_teknis_created,
       Tr_teknis_tanggal,
+      Tr_teknis_progres_end,
+      Tr_teknis_progres_start,
       Tr_teknis_work_order_images, // gambar dikirim langsung dari frontend
     } = req.body;
 
@@ -642,11 +734,15 @@ const updateTrTeknisWorkOrderTerpakaiNonGambar = async (req, res) => {
       Tr_teknis_created,
       Tr_teknis_tanggal,
       Tr_teknis_logistik_id,
-      Tr_teknis_team: team,
+      Tr_teknis_team: team.map(x => x.name),
+      Tr_teknis_progres_end,
+      Tr_teknis_progres_start,
       Tr_teknis_work_order_terpakai_material: materialTerpakai,
       Tr_teknis_work_order_retur: materialKembali,
       Tr_teknis_work_order_images, // langsung simpan dari frontend
     };
+
+    // console.log(workOrderData)
 
     if (Tr_teknis_kategori === "MT") {
       workOrderData.Tr_teknis_trouble = Tr_teknis_trouble;
@@ -669,227 +765,402 @@ const updateTrTeknisWorkOrderTerpakaiNonGambar = async (req, res) => {
   }
 };
 
+const getMonthlyDataPerYear = async (req, res) => {
+  try {
+    const { domain, hierarchy, type } = req.params;
+    const { year = new Date().getFullYear(), deleted = "N", range } = req.query;
+
+    const companyCodes = await findByHierarchyAndDomain(hierarchy, domain, 1.1);
+    const baseMatch = {
+      companyCode: companyCodes,
+      Tr_teknis_deleted: deleted,
+    };
+
+    if (range) {
+      const rangeNum = parseInt(range);
+      const totalGroups = 6;
+      const totalMonths = rangeNum * totalGroups;
+
+      const now = new Date();
+      now.setDate(1);
+      const start = new Date(now);
+      start.setMonth(now.getMonth() - totalMonths + 1);
+
+      const startMonth = start.toISOString().slice(0, 7);
+
+      const pipeline = [
+        { $match: baseMatch },
+        { $unwind: "$Tr_teknis_work_order_terpakai" },
+        {
+          $match: {
+            ...(type && {
+              "Tr_teknis_work_order_terpakai.Tr_teknis_kategori": type,
+            }),
+            "Tr_teknis_work_order_terpakai.Tr_teknis_tanggal": {
+              $gte: `${startMonth}-01`,
+            },
+          },
+        },
+        {
+          $project: {
+            month: {
+              $substrBytes: ["$Tr_teknis_work_order_terpakai.Tr_teknis_tanggal", 0, 7],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$month",
+            total: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ];
+
+      const agg = await Tr_teknis.aggregate(pipeline);
+
+      const monthMap = {};
+      agg.forEach(({ _id, total }) => {
+        monthMap[_id] = total;
+      });
+
+      const result = [];
+      const labels = [];
+
+      for (let i = 0; i < totalGroups; i++) {
+        let groupSum = 0;
+        let labelStart = null;
+        let labelEnd = null;
+
+        for (let j = 0; j < rangeNum; j++) {
+          const d = new Date(start);
+          d.setMonth(start.getMonth() + i * rangeNum + j);
+          const key = d.toISOString().slice(0, 7);
+          groupSum += monthMap[key] || 0;
+
+          if (j === 0) labelStart = new Date(d);
+          if (j === rangeNum - 1) labelEnd = new Date(d);
+        }
+
+        result.push(groupSum);
+
+        const label = `${labelStart.toLocaleString('default', { month: 'short' })} ${labelStart.getFullYear()} - ${labelEnd.toLocaleString('default', { month: 'short' })} ${labelEnd.getFullYear()}`;
+        labels.push(label);
+      }
+
+      return res.status(200).json({ result, labels });
+    }
+
+    const pipeline = [
+      { $match: baseMatch },
+      { $unwind: "$Tr_teknis_work_order_terpakai" },
+      {
+        $match: {
+          "Tr_teknis_work_order_terpakai.Tr_teknis_tanggal": {
+            $regex: `^${year}-`,
+          },
+          ...(type && {
+            "Tr_teknis_work_order_terpakai.Tr_teknis_kategori": type,
+          }),
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $substrBytes: ["$Tr_teknis_work_order_terpakai.Tr_teknis_tanggal", 5, 2],
+          },
+          total: { $sum: 1 },
+        },
+      },
+    ];
+
+    const agg = await Tr_teknis.aggregate(pipeline);
+    const monthCounts = Array(12).fill(0);
+    agg.forEach(({ _id, total }) => {
+      const idx = parseInt(_id, 10) - 1;
+      if (idx >= 0 && idx < 12) monthCounts[idx] = total;
+    });
+
+    return res.status(200).json(monthCounts);
+  } catch (err) {
+    console.error("Error:", err);
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+// Fungsi bantu untuk konversi nomor bulan ke singkatan nama
+function formatMonthKey(monthIndex) {
+  const monthNames = [
+    "Jan", "Feb", "Mar", "Apr",
+    "May", "Jun", "Jul", "Aug",
+    "Sep", "Oct", "Nov", "Dec"
+  ];
+  return monthNames[monthIndex];
+}
 
 
+// const updateTrTeknisEvidentById = async (req, res) => {
+//   try {
+//     const { logistikType, logistikdate, logistikNumber, id } = req.params;
+//     const objectId = new mongoose.Types.ObjectId(id);
+//     const Tr_teknis_logistik_id = `${logistikType}/${logistikdate}/${logistikNumber}`;
+
+//     // Debug: Cek apakah dokumen ada
+//     const documentExists = await Tr_teknis.findOne({
+//       Tr_teknis_logistik_id,
+//       "Tr_teknis_work_order_terpakai._id": objectId,
+//     });
+
+//     if (!documentExists) {
+//       return res.status(404).json({ message: "Data tidak ditemukan" });
+//     }
+
+//     // Parse form data
+//     const updates = { ...req.body };
+
+//     // Cari work order berdasarkan ID
+//     let workOrderImages = documentExists.Tr_teknis_work_order_terpakai.find(
+//       (x) => x._id.toString() === id
+//     );
+
+//     if (!workOrderImages) {
+//       return res.status(404).json({ message: "Work order tidak ditemukan" });
+//     }
+
+//     // Parse JSON jika diperlukan
+//     if (updates.Tr_teknis_team) {
+//       try {
+//         updates.Tr_teknis_team = JSON.parse(updates.Tr_teknis_team);
+//       } catch (error) {
+//         return res.status(400).json({ message: "Format Tr_teknis_team tidak valid" });
+//       }
+//     }
+//     if (updates.Tr_teknis_work_order_terpakai_material) {
+//       try {
+//         updates.Tr_teknis_work_order_terpakai_material = JSON.parse(
+//           updates.Tr_teknis_work_order_terpakai_material
+//         );
+//       } catch (error) {
+//         return res.status(400).json({ message: "Format Tr_teknis_work_order_terpakai_material tidak valid" });
+//       }
+//     }
+
+    
+//     const imageFieldsInfra = [
+//       "Tr_teknis_evident_start",
+//       "Tr_teknis_evident_progress",
+//       "Tr_teknis_evident_end"
+//     ];
+//     let Tr_teknis_images = {};
+//     if (updates.Tr_teknis_kategori === "INFRA") {
+//       imageFieldsInfra.forEach(field => {
+//         Tr_teknis_images[field] = [];
+//       });
+//       if (updates) {
+//         // Loop untuk mencari key yang mengandung "Tr_teknis_work_order_images."
+//         Object.keys(updates).forEach((fullKey) => {
+//           if (fullKey.startsWith("Tr_teknis_work_order_images.")) {
+//             // Ambil bagian setelah "Tr_teknis_work_order_images."
+//             const key = fullKey.replace("Tr_teknis_work_order_images.", "");
+      
+//             // Pastikan key ini ada dalam Tr_teknis_images
+//             if (Tr_teknis_images.hasOwnProperty(key)) {
+//               // Tambahkan data dari updates ke dalam Tr_teknis_images
+//               Tr_teknis_images[key].push(...updates[fullKey].map(item => item ?? ""));
+//             }
+//           }
+//         });
+//       }    
+      
+
+//       for (const field in Tr_teknis_images) {
+//         if (Tr_teknis_images.hasOwnProperty(field) && Tr_teknis_images[field]) {
+//           let images = Tr_teknis_images[field]; // Ambil array gambar
+//           for (let i = 0; i < images.length; i++) {
+//             let img = images[i];
+//             if (typeof img === "string" && img.startsWith("http")) {
+//               const downloadedFileName = await downloadImage(img);
+//               if (downloadedFileName) {
+//                 Tr_teknis_images[field][i] = downloadedFileName; // Ganti URL dengan nama file lokal
+//               }
+//             }
+//           }
+//         }
+//       }
+
+//       if (req.files && req.files.length > 0) {
+//         req.files.forEach((file) => {
+      
+//           // Hapus prefix "Tr_teknis_work_order_images."
+//           const cleanedFieldname = file.fieldname.replace(/^Tr_teknis_work_order_images\./, "");
+      
+//           // Gunakan regex untuk menangkap nama field dan index
+//           const match = cleanedFieldname.match(/^(.*?)\[(\d+)\]$/);
+//           if (match) {
+//             const fieldName = match[1]; // Nama field, misalnya "Tr_teknis_evident_start"
+//             const index = parseInt(match[2], 10); // Index array, misalnya 0
+      
+//             // Pastikan field termasuk dalam daftar imageFieldsInfra
+//             if (imageFieldsInfra.includes(fieldName)) {
+//               // Jika field belum ada di Tr_teknis_images, inisialisasi sebagai array
+//               if (!Tr_teknis_images[fieldName]) {
+//                 Tr_teknis_images[fieldName] = [];
+//               }
+      
+//               // Simpan file ke index yang sesuai
+//               Tr_teknis_images[fieldName][index] = file.filename;
+//             }
+//           }
+//         });
+//       }      
+//     } else {
+//       const imageFieldMapping = {
+//         PSB: [
+//           "Tr_teknis_evident_progress",
+//           "Tr_teknis_evident_odp_depan",
+//           "Tr_teknis_evident_odp_dalam",
+//           "Tr_teknis_evident_redaman_ont",
+//           "Tr_teknis_evident_redaman_odp",
+//           "Tr_teknis_evident_marking_dc_start",
+//           "Tr_teknis_evident_marking_dc_end",
+//           "Tr_teknis_evident_kertas_psb",
+//           "Tr_teknis_evident_review_google",
+//           "Tr_teknis_evident_speed_test",
+//           "Tr_teknis_evident_pelanggan_dengan_pelanggan",
+//           "Tr_teknis_evident_pelanggan_depan_rumah",
+//         ],
+//         MT: [
+//           "Tr_teknis_redaman_sebelum",
+//           "Tr_teknis_evident_kendala_1",
+//           "Tr_teknis_evident_kendala_2",
+//           "Tr_teknis_evident_modem_sebelum",
+//           "Tr_teknis_evident_modem_sesudah",
+//           "Tr_teknis_evident_proses_sambung",
+//           "Tr_teknis_redaman_sesudah",
+//           "Tr_teknis_redaman_out_odp",
+//           "Tr_teknis_redaman_pelanggan",
+//           "Tr_teknis_evident_marking_dc_start",
+//           "Tr_teknis_evident_marking_dc_end",
+//         ],
+//       };
+
+//       const imageFields = imageFieldMapping[updates.Tr_teknis_kategori];
+//       if (!imageFields) {
+//         return res.status(400).json({ message: "Invalid Tr_teknis_kategori value" });
+//       }
+//       imageFields.forEach(field => {
+//         Tr_teknis_images[field] = "";
+//       });
+      
+//       if (updates) {
+//         Object.keys(Tr_teknis_images).forEach((key) => {
+//           if (updates.hasOwnProperty(key)) {
+//             Tr_teknis_images[key] = updates[key];
+//           }
+//         });
+//       }   
+
+//       if (req.files && req.files.length > 0) {
+//         req.files.forEach((file) => {
+//           if (imageFields.includes(file.fieldname)) {
+//             Tr_teknis_images[file.fieldname] = file.filename;
+//           }
+//         });
+//       }
+
+      
+//       // Proses gambar yang berupa URL
+//       for (const key of imageFields) {
+//         if (updates[key] && typeof updates[key] === "string" && updates[key].startsWith("http")) {
+//           const fileName = await downloadImage(updates[key]);
+//           if (fileName) {
+//             Tr_teknis_images[key] = fileName;
+//           }
+//         } else if (updates[key] === "" || updates[key] === null) {
+//           Tr_teknis_images[key] = "";
+//         }
+//         delete updates[key];
+//       }
+//     }
+    
+//     const filter = {
+//         Tr_teknis_logistik_id,
+//         "Tr_teknis_work_order_terpakai._id": objectId,
+// };
+// if (typeof updates.Tr_teknis_team === 'string') {
+//   updates.Tr_teknis_team = JSON.parse(updates.Tr_teknis_team);
+// }
+// const updateQuery = {
+//     $set: {
+//       ...Object.fromEntries(
+//         Object.entries(updates).filter(([key]) => key !== "_id" && key !== "Tr_teknis_images").map(([key, value]) => [
+//           `Tr_teknis_work_order_terpakai.$[elem].${key}`,
+//           value,
+//         ])
+//       )
+//     },
+// };
+// const options = {
+//       arrayFilters: [{ "elem._id": objectId }],
+//       new: true,
+// };
+
+//     await Tr_teknis.updateOne(filter, updateQuery, options);
+//     const updatedRecord = await Tr_teknis.findOneAndUpdate(filter, {
+//       $set: {
+//         "Tr_teknis_work_order_terpakai.$[elem].Tr_teknis_work_order_images": Tr_teknis_images,
+//       },
+//     }, options);
+
+//     res.status(200).json({ message: "Gambar berhasil diperbarui", updatedData: updatedRecord });
+//   } catch (error) {
+//     console.error("Error:", error);
+//     res.status(500).json({ message: "Terjadi kesalahan saat update" });
+//   }
+// };
 const updateTrTeknisEvidentById = async (req, res) => {
   try {
     const { logistikType, logistikdate, logistikNumber, id } = req.params;
     const objectId = new mongoose.Types.ObjectId(id);
     const Tr_teknis_logistik_id = `${logistikType}/${logistikdate}/${logistikNumber}`;
 
-    // Debug: Cek apakah dokumen ada
-    const documentExists = await Tr_teknis.findOne({
+    const filter = {
       Tr_teknis_logistik_id,
       "Tr_teknis_work_order_terpakai._id": objectId,
-    });
+    };
 
-    if (!documentExists) {
+    const updates = { ...req.body };
+
+    const updateQuery = {
+      $set: Object.fromEntries(
+        Object.entries(updates)
+          .filter(([key]) => key !== "_id")
+          .map(([key, val]) => [`Tr_teknis_work_order_terpakai.$[elem].${key}`, val])
+      ),
+    };
+
+    const options = {
+      arrayFilters: [{ "elem._id": objectId }],
+      new: true,
+    };
+
+// console.log('filter: ',filter)
+// console.log('query: ',updateQuery)
+// console.log('options: ',options)
+
+    const updatedRecord = await Tr_teknis.findOneAndUpdate(filter, updateQuery, options);
+console.log(updatedRecord)
+    if (!updatedRecord) {
       return res.status(404).json({ message: "Data tidak ditemukan" });
     }
 
-    // Parse form data
-    const updates = { ...req.body };
-
-    // Cari work order berdasarkan ID
-    let workOrderImages = documentExists.Tr_teknis_work_order_terpakai.find(
-      (x) => x._id.toString() === id
-    );
-
-    if (!workOrderImages) {
-      return res.status(404).json({ message: "Work order tidak ditemukan" });
-    }
-
-    // Parse JSON jika diperlukan
-    if (updates.Tr_teknis_team) {
-      try {
-        updates.Tr_teknis_team = JSON.parse(updates.Tr_teknis_team);
-      } catch (error) {
-        return res.status(400).json({ message: "Format Tr_teknis_team tidak valid" });
-      }
-    }
-    if (updates.Tr_teknis_work_order_terpakai_material) {
-      try {
-        updates.Tr_teknis_work_order_terpakai_material = JSON.parse(
-          updates.Tr_teknis_work_order_terpakai_material
-        );
-      } catch (error) {
-        return res.status(400).json({ message: "Format Tr_teknis_work_order_terpakai_material tidak valid" });
-      }
-    }
-
-    
-    const imageFieldsInfra = [
-      "Tr_teknis_evident_start",
-      "Tr_teknis_evident_progress",
-      "Tr_teknis_evident_end"
-    ];
-    let Tr_teknis_images = {};
-    if (updates.Tr_teknis_kategori === "INFRA") {
-      imageFieldsInfra.forEach(field => {
-        Tr_teknis_images[field] = [];
-      });
-      if (updates) {
-        // Loop untuk mencari key yang mengandung "Tr_teknis_work_order_images."
-        Object.keys(updates).forEach((fullKey) => {
-          if (fullKey.startsWith("Tr_teknis_work_order_images.")) {
-            // Ambil bagian setelah "Tr_teknis_work_order_images."
-            const key = fullKey.replace("Tr_teknis_work_order_images.", "");
-      
-            // Pastikan key ini ada dalam Tr_teknis_images
-            if (Tr_teknis_images.hasOwnProperty(key)) {
-              // Tambahkan data dari updates ke dalam Tr_teknis_images
-              Tr_teknis_images[key].push(...updates[fullKey].map(item => item ?? ""));
-            }
-          }
-        });
-      }    
-      
-
-      for (const field in Tr_teknis_images) {
-        if (Tr_teknis_images.hasOwnProperty(field) && Tr_teknis_images[field]) {
-          let images = Tr_teknis_images[field]; // Ambil array gambar
-          for (let i = 0; i < images.length; i++) {
-            let img = images[i];
-            if (typeof img === "string" && img.startsWith("http")) {
-              const downloadedFileName = await downloadImage(img);
-              if (downloadedFileName) {
-                Tr_teknis_images[field][i] = downloadedFileName; // Ganti URL dengan nama file lokal
-              }
-            }
-          }
-        }
-      }
-
-      if (req.files && req.files.length > 0) {
-        req.files.forEach((file) => {
-      
-          // Hapus prefix "Tr_teknis_work_order_images."
-          const cleanedFieldname = file.fieldname.replace(/^Tr_teknis_work_order_images\./, "");
-      
-          // Gunakan regex untuk menangkap nama field dan index
-          const match = cleanedFieldname.match(/^(.*?)\[(\d+)\]$/);
-          if (match) {
-            const fieldName = match[1]; // Nama field, misalnya "Tr_teknis_evident_start"
-            const index = parseInt(match[2], 10); // Index array, misalnya 0
-      
-            // Pastikan field termasuk dalam daftar imageFieldsInfra
-            if (imageFieldsInfra.includes(fieldName)) {
-              // Jika field belum ada di Tr_teknis_images, inisialisasi sebagai array
-              if (!Tr_teknis_images[fieldName]) {
-                Tr_teknis_images[fieldName] = [];
-              }
-      
-              // Simpan file ke index yang sesuai
-              Tr_teknis_images[fieldName][index] = file.filename;
-            }
-          }
-        });
-      }      
-    } else {
-      const imageFieldMapping = {
-        PSB: [
-          "Tr_teknis_evident_progress",
-          "Tr_teknis_evident_odp_depan",
-          "Tr_teknis_evident_odp_dalam",
-          "Tr_teknis_evident_redaman_ont",
-          "Tr_teknis_evident_redaman_odp",
-          "Tr_teknis_evident_marking_dc_start",
-          "Tr_teknis_evident_marking_dc_end",
-          "Tr_teknis_evident_kertas_psb",
-          "Tr_teknis_evident_review_google",
-          "Tr_teknis_evident_speed_test",
-          "Tr_teknis_evident_pelanggan_dengan_pelanggan",
-          "Tr_teknis_evident_pelanggan_depan_rumah",
-        ],
-        MT: [
-          "Tr_teknis_redaman_sebelum",
-          "Tr_teknis_evident_kendala_1",
-          "Tr_teknis_evident_kendala_2",
-          "Tr_teknis_evident_modem_sebelum",
-          "Tr_teknis_evident_modem_sesudah",
-          "Tr_teknis_evident_proses_sambung",
-          "Tr_teknis_redaman_sesudah",
-          "Tr_teknis_redaman_out_odp",
-          "Tr_teknis_redaman_pelanggan",
-          "Tr_teknis_evident_marking_dc_start",
-          "Tr_teknis_evident_marking_dc_end",
-        ],
-      };
-
-      const imageFields = imageFieldMapping[updates.Tr_teknis_kategori];
-      if (!imageFields) {
-        return res.status(400).json({ message: "Invalid Tr_teknis_kategori value" });
-      }
-      imageFields.forEach(field => {
-        Tr_teknis_images[field] = "";
-      });
-      
-      if (updates) {
-        Object.keys(Tr_teknis_images).forEach((key) => {
-          if (updates.hasOwnProperty(key)) {
-            Tr_teknis_images[key] = updates[key];
-          }
-        });
-      }   
-
-      if (req.files && req.files.length > 0) {
-        req.files.forEach((file) => {
-          if (imageFields.includes(file.fieldname)) {
-            Tr_teknis_images[file.fieldname] = file.filename;
-          }
-        });
-      }
-
-      
-      // Proses gambar yang berupa URL
-      for (const key of imageFields) {
-        if (updates[key] && typeof updates[key] === "string" && updates[key].startsWith("http")) {
-          const fileName = await downloadImage(updates[key]);
-          if (fileName) {
-            Tr_teknis_images[key] = fileName;
-          }
-        } else if (updates[key] === "" || updates[key] === null) {
-          Tr_teknis_images[key] = "";
-        }
-        delete updates[key];
-      }
-    }
-    
-    const filter = {
-        Tr_teknis_logistik_id,
-        "Tr_teknis_work_order_terpakai._id": objectId,
-};
-if (typeof updates.Tr_teknis_team === 'string') {
-  updates.Tr_teknis_team = JSON.parse(updates.Tr_teknis_team);
-}
-const updateQuery = {
-    $set: {
-      ...Object.fromEntries(
-        Object.entries(updates).filter(([key]) => key !== "_id" && key !== "Tr_teknis_images").map(([key, value]) => [
-          `Tr_teknis_work_order_terpakai.$[elem].${key}`,
-          value,
-        ])
-      )
-    },
-};
-const options = {
-      arrayFilters: [{ "elem._id": objectId }],
-      new: true,
-};
-
-    await Tr_teknis.updateOne(filter, updateQuery, options);
-    const updatedRecord = await Tr_teknis.findOneAndUpdate(filter, {
-      $set: {
-        "Tr_teknis_work_order_terpakai.$[elem].Tr_teknis_work_order_images": Tr_teknis_images,
-      },
-    }, options);
-
-    res.status(200).json({ message: "Gambar berhasil diperbarui", updatedData: updatedRecord });
+    res.status(200).json({ message: "Data berhasil diperbarui", updatedData: updatedRecord });
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Update error:", error);
     res.status(500).json({ message: "Terjadi kesalahan saat update" });
   }
 };
+
 
 const updateTrTeknisGambar = async (req, res) => {
   try {
@@ -1074,6 +1345,7 @@ module.exports = {
   getTrTeknisById,
   getAllWorkOrders,
   getTrTeknisEvidentById,
+  getMonthlyDataPerYear,
   createTrTeknis,
   createTrTeknisGambar,
   updateTrTeknisWorkOrderTerpakai,

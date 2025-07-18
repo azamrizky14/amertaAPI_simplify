@@ -6,7 +6,7 @@ const { findByHierarchyAndDomain } = require("../../utils/hierarchyAndDomain");
 const getDataLead = async (req, res) => {
   try {
     const { domain, hierarchy, deleted } = req.params;
-    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1.2);
+    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1.3);
     const filter = { companyCode: newDomain };
     if (deleted) filter.Data_lead_status = deleted;
     const MasterDataLead = await DataLead.find(filter);
@@ -19,7 +19,7 @@ const getDataLead = async (req, res) => {
 const getDataLeadBystatuslead = async (req, res) => {
   try {
     const { domain, hierarchy, statuslead, deleted } = req.params;
-    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1.2);
+    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1.3);
     const filter = {
       companyCode: newDomain,
       Data_lead_status_lead: statuslead,
@@ -61,13 +61,41 @@ const countDataLeadByMonth = async (req, res) => {
     const { domain, hierarchy, deleted } = req.params;
     const { year } = req.query;
 
-    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1.2);
+    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1.3);
     const filter = { companyCode: newDomain };
     // Jika filter tahun diberikan
     if (year) {
       // Asumsikan Data_lead_created dalam format "YYYY-MM-DD"
       filter.$expr = {
         $eq: [{ $substr: ["$Data_lead_created", 0, 7] }, year],
+      };
+    }
+
+    if (deleted) {
+      filter.Data_lead_status = deleted;
+    }
+
+    // Dapatkan data
+    const MasterDataLead = await DataLead.find(filter);
+
+    // Kirim jumlah hasil
+    res.status(200).json({ count: MasterDataLead.length });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+const countDataLeadByDate = async (req,res) =>{
+  try {
+    const { domain, hierarchy, deleted } = req.params;
+    const { year } = req.query;
+
+    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1.3);
+    const filter = { companyCode: newDomain };
+    // Jika filter tahun diberikan
+    if (year) {
+      // Asumsikan Data_lead_created dalam format "YYYY-MM-DD"
+      filter.$expr = {
+        $eq: [{ $substr: ["$Data_lead_created", 0, 10] }, year],
       };
     }
 
@@ -96,6 +124,31 @@ const countDataLeadByAfiliasiandMonth = async (req,res) =>{
       // Asumsikan Data_lead_created dalam format "YYYY-MM-DD"
       filter.$expr = {
         $eq: [{ $substr: ["$Data_lead_created", 0, 7] }, year],
+      };
+    }
+
+
+    // Dapatkan data
+    const MasterDataLead = await DataLead.find(filter);
+
+    // Kirim jumlah hasil
+    res.status(200).json({ count: MasterDataLead.length });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const countDataLeadByAfiliasiandDate = async (req,res) =>{
+  try {
+    const { afiliasi } = req.params;
+    const { year } = req.query;
+    const filter = { Data_lead_afiliasi: afiliasi };
+
+    // Jika filter tahun diberikan
+    if (year) {
+      // Asumsikan Data_lead_created dalam format "YYYY-MM-DD"
+      filter.$expr = {
+        $eq: [{ $substr: ["$Data_lead_created", 0, 10] }, year],
       };
     }
 
@@ -196,7 +249,9 @@ module.exports = {
   getDataLeadByAfiliasi,
   countDataLeadByAfiliasi,
   countDataLeadByMonth,
+  countDataLeadByDate,
   countDataLeadByAfiliasiandMonth,
+  countDataLeadByAfiliasiandDate,
   getDataLeadPrefix,
   getDataLeadById,
   getDataLeadPrefix,

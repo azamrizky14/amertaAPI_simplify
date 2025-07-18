@@ -5,6 +5,8 @@ const DataDrafterController = require("../../controllers/Umum/DataDrafter.Contro
 // GET
 router.get("/getDataDrafter/:domain/:hierarchy/:deleted?", DataDrafterController.getDataDrafter);
 router.get("/getDataDrafterById/:id", DataDrafterController.getDataDrafterById);
+router.post("/getDataDrafterByServer/:domain/:hierarchy/:deleted?", DataDrafterController.getDataDrafterByServer);
+router.get("/getDataDrafterByType/:domain/:hierarchy/:deleted/:server", DataDrafterController.getDataDrafterByType);
 
 // POST
 router.post("/createDataDrafter", DataDrafterController.createDataDrafter);

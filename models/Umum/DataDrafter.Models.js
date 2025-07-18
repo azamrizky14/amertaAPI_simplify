@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 
 const DataDrafterSchema = mongoose.Schema(
   {
+    data_drafter_server:{
+      type: String
+    },
     data_drafter_nama: {
       type: String,
       required: true,
@@ -13,6 +16,10 @@ const DataDrafterSchema = mongoose.Schema(
     data_drafter_titik_koordinat: {
       type: String,
       required: true,
+    },
+    data_drafter_list_odp:{
+      type: Array,
+      default:[]
     },
     data_drafter_status: {
       type: String,
