@@ -3,6 +3,64 @@ const Item = require("../../models/Umum/Item.Models.js");
 
 const { findByHierarchyAndDomain } = require("../../utils/hierarchyAndDomain");
 
+function generateGroupPipeline(field, dateField, startDate, rangeNum, totalGroups, isRangeMode) {
+  return {
+    $map: {
+      input: Array.from({ length: totalGroups }, (_, idx) => idx),
+      as: "groupIdx",
+      in: {
+        group: "$$groupIdx",
+        total: {
+          $sum: {
+            $map: {
+              input: {
+                $filter: {
+                  input: { $ifNull: [`$${field}`, []] },
+                  as: "item",
+                  cond: {
+                    $let: {
+                      vars: {
+                        tgl: { $toDate: `$$item.${dateField}` },
+                        start: {
+                          $dateAdd: {
+                            startDate,
+                            unit: "month",
+                            amount: { $multiply: ["$$groupIdx", isRangeMode ? rangeNum : 1] }
+                          }
+                        },
+                        end: {
+                          $dateAdd: {
+                            startDate,
+                            unit: "month",
+                            amount: {
+                              $multiply: [{ $add: ["$$groupIdx", 1] }, isRangeMode ? rangeNum : 1]
+                            }
+                          }
+                        }
+                      },
+                      in: {
+                        $and: [
+                          { $gte: ["$$tgl", "$$start"] },
+                          { $lt: ["$$tgl", "$$end"] },
+                          { $ne: ["$$item.item_detail_history_quantity", null] },
+                          { $ne: ["$$item.item_detail_history_quantity", ""] }
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              as: "validItem",
+              in: { $toDouble: "$$validItem.item_detail_history_quantity" }
+            }
+          }
+        }
+      }
+    }
+  };
+}
+
+
 // GET BY DOMAIN
 const getMasterItem = async (req, res) => {
   try {
@@ -102,7 +160,7 @@ const getMasterItemByLocation = async (req, res) => {
 const getAllMasterItemWithLocation = async (req, res) => {
   try {
     const { domain, hierarchy } = req.params;
-    const { deleted: rawDeleted, status: rawStatus } = req.query;
+    const { deleted: rawDeleted, status: rawStatus, } = req.query;
 
     // Bersihkan nilai kosong
     const deleted = rawDeleted === '' ? undefined : rawDeleted;
@@ -122,6 +180,7 @@ const getAllMasterItemWithLocation = async (req, res) => {
     }
 
     const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1.2);
+    
     const filter = { companyCode: newDomain };
 
     if (deleted) {
@@ -183,11 +242,23 @@ const getAllMasterItemWithLocation = async (req, res) => {
 const getMasterItemWithInOutSummarySafe = async (req, res) => {
   try {
     const { domain, hierarchy, deleted } = req.params;
+    const { month, range } = req.query;
 
     const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1);
     const filter = { companyCode: newDomain };
 
     if (deleted) filter.item_deleted = deleted;
+
+    // Parsing month (format: yyyy-mm)
+    const now = month ? new Date(`${month}-01`) : new Date();
+    const rangeInt = parseInt(range);
+
+    // Hitung batas awal berdasarkan range (jika ada)
+    const startDate = range
+      ? new Date(now.getFullYear(), now.getMonth() - (rangeInt - 1), 1)
+      : new Date(0); // jika tidak ada range, ambil dari awal waktu
+
+    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
     const MasterItem = await Item.aggregate([
       { $match: filter },
@@ -195,7 +266,7 @@ const getMasterItemWithInOutSummarySafe = async (req, res) => {
 
       {
         $addFields: {
-          totalIn: {
+          "item_detail.totalIn": {
             $sum: {
               $map: {
                 input: {
@@ -205,17 +276,33 @@ const getMasterItemWithInOutSummarySafe = async (req, res) => {
                     cond: {
                       $and: [
                         { $ne: ["$$inItem.item_detail_history_quantity", null] },
-                        { $ne: ["$$inItem.item_detail_history_quantity", ""] }
+                        { $ne: ["$$inItem.item_detail_history_quantity", ""] },
+                        {
+                          $and: [
+                            {
+                              $gte: [
+                                { $toDate: "$$inItem.item_detail_history_masuk_tgl" },
+                                startDate
+                              ]
+                            },
+                            {
+                              $lt: [
+                                { $toDate: "$$inItem.item_detail_history_masuk_tgl" },
+                                endDate
+                              ]
+                            }
+                          ]
+                        }
                       ]
                     }
                   }
                 },
                 as: "validIn",
-                in: { $toInt: "$$validIn.item_detail_history_quantity" }
+                in: { $toDouble: "$$validIn.item_detail_history_quantity" }
               }
             }
           },
-          totalOut: {
+          "item_detail.totalOut": {
             $sum: {
               $map: {
                 input: {
@@ -225,13 +312,29 @@ const getMasterItemWithInOutSummarySafe = async (req, res) => {
                     cond: {
                       $and: [
                         { $ne: ["$$outItem.item_detail_history_quantity", null] },
-                        { $ne: ["$$outItem.item_detail_history_quantity", ""] }
+                        { $ne: ["$$outItem.item_detail_history_quantity", ""] },
+                        {
+                          $and: [
+                            {
+                              $gte: [
+                                { $toDate: "$$outItem.item_detail_history_keluar_tanggal" },
+                                startDate
+                              ]
+                            },
+                            {
+                              $lt: [
+                                { $toDate: "$$outItem.item_detail_history_keluar_tanggal" },
+                                endDate
+                              ]
+                            }
+                          ]
+                        }
                       ]
                     }
                   }
                 },
                 as: "validOut",
-                in: { $toInt: "$$validOut.item_detail_history_quantity" }
+                in: { $toDouble: "$$validOut.item_detail_history_quantity" }
               }
             }
           }
@@ -262,10 +365,11 @@ const getMasterItemWithInOutSummarySafe = async (req, res) => {
             item_detail_kode_sn_status: "$item_detail.item_detail_kode_sn_status",
             item_detail_satuan: "$item_detail.item_detail_satuan",
             item_detail_quantity: "$item_detail.item_detail_quantity",
+            item_detail_quantity_mengambang: "$item_detail.item_detail_quantity_mengambang",
             item_detail_status_penggunaan: "$item_detail.item_detail_status_penggunaan",
             item_detail_status_kondisi: "$item_detail.item_detail_status_kondisi",
-            item_detail_history_masuk: "$totalIn",
-            item_detail_history_keluar: "$totalOut"
+            item_detail_history_masuk: "$item_detail.totalIn",
+            item_detail_history_keluar: "$item_detail.totalOut"
           }
         }
       },
@@ -286,6 +390,190 @@ const getMasterItemWithInOutSummarySafe = async (req, res) => {
     ]);
 
     res.status(200).json(MasterItem);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getMasterItemWithInOutAnnual = async (req, res) => {
+  try {
+    const { domain, hierarchy, deleted } = req.params;
+    const { year, range } = req.query;
+
+    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1);
+    const filter = { companyCode: newDomain };
+    if (deleted) filter.item_deleted = deleted;
+
+    const now = year ? new Date(`${year}-12-31`) : new Date();
+    const selectedYear = now.getFullYear();
+    const rangeNum = parseInt(range);
+    const isRangeMode = !isNaN(rangeNum) && rangeNum > 0;
+
+    const totalGroups = isRangeMode ? 6 : 12;
+    const monthsToSubtract = isRangeMode ? rangeNum * (totalGroups - 1) : 11;
+
+    const startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    startDate.setUTCMonth(startDate.getUTCMonth() - monthsToSubtract);
+
+    const labels = [];
+    const startDates = [];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    for (let i = 0; i < totalGroups; i++) {
+      const groupStartMonth = startDate.getUTCMonth() + i * (isRangeMode ? rangeNum : 1);
+      const groupStartYear = startDate.getUTCFullYear() + Math.floor(groupStartMonth / 12);
+      const normalizedMonth = groupStartMonth % 12;
+
+      const start = new Date(Date.UTC(groupStartYear, normalizedMonth, 1));
+      const end = new Date(Date.UTC(groupStartYear, normalizedMonth + (isRangeMode ? rangeNum : 1), 1));
+      end.setUTCDate(end.getUTCDate() - 1);
+
+      labels.push(`${monthNames[start.getUTCMonth()]} ${start.getUTCFullYear()} - ${monthNames[end.getUTCMonth()]} ${end.getUTCFullYear()}`);
+      startDates.push(start);
+    }
+
+    const MasterItem = await Item.aggregate([
+      { $match: filter },
+      { $unwind: "$item_detail" },
+      {
+        $addFields: {
+          "item_detail.groupedIn": {
+            $map: {
+              input: startDates,
+              as: "start",
+              in: {
+                label: "$$start",
+                total: {
+                  $sum: {
+                    $map: {
+                      input: {
+                        $filter: {
+                          input: { $ifNull: ["$item_detail.item_detail_history_masuk", []] },
+                          as: "inItem",
+                          cond: {
+                            $and: [
+                              { $gte: [{ $toDate: "$$inItem.item_detail_history_masuk_tgl" }, "$$start"] },
+                              {
+                                $lt: [
+                                  { $toDate: "$$inItem.item_detail_history_masuk_tgl" },
+                                  {
+                                    $dateAdd: {
+                                      startDate: "$$start",
+                                      unit: "month",
+                                      amount: isRangeMode ? rangeNum : 1
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      as: "validIn",
+                      in: { $toDouble: "$$validIn.item_detail_history_quantity" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "item_detail.groupedOut": {
+            $map: {
+              input: startDates,
+              as: "start",
+              in: {
+                label: "$$start",
+                total: {
+                  $sum: {
+                    $map: {
+                      input: {
+                        $filter: {
+                          input: { $ifNull: ["$item_detail.item_detail_history_keluar", []] },
+                          as: "outItem",
+                          cond: {
+                            $and: [
+                              { $gte: [{ $toDate: "$$outItem.item_detail_history_keluar_tanggal" }, "$$start"] },
+                              {
+                                $lt: [
+                                  { $toDate: "$$outItem.item_detail_history_keluar_tanggal" },
+                                  {
+                                    $dateAdd: {
+                                      startDate: "$$start",
+                                      unit: "month",
+                                      amount: isRangeMode ? rangeNum : 1
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      as: "validOut",
+                      in: { $toDouble: "$$validOut.item_detail_history_quantity" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          item_id: 1,
+          item_nama: 1,
+          item_tipe: 1,
+          item_satuan: 1,
+          item_keterangan: 1,
+          item_gambar: 1,
+          item_user_created: 1,
+          item_created: 1,
+          item_updated: 1,
+          item_deleted: 1,
+          companyName: 1,
+          companyCode: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          item_detail: {
+            item_detail_item_kode: "$item_detail.item_detail_item_kode",
+            item_detail_item_nama: "$item_detail.item_detail_item_nama",
+            item_detail_item_price: "$item_detail.item_detail_item_price",
+            item_detail_kode_sn: "$item_detail.item_detail_kode_sn",
+            item_detail_kode_sn_status: "$item_detail.item_detail_kode_sn_status",
+            item_detail_satuan: "$item_detail.item_detail_satuan",
+            item_detail_quantity: "$item_detail.item_detail_quantity",
+            item_detail_quantity_mengambang: "$item_detail.item_detail_quantity_mengambang",
+            item_detail_status_penggunaan: "$item_detail.item_detail_status_penggunaan",
+            item_detail_status_kondisi: "$item_detail.item_detail_status_kondisi",
+            item_detail_history_masuk: "$item_detail.groupedIn",
+            item_detail_history_keluar: "$item_detail.groupedOut"
+          }
+        }
+      },
+      {
+        $group: {
+          _id: "$_id",
+          doc: { $first: "$$ROOT" },
+          item_detail: { $push: "$item_detail" }
+        }
+      },
+      {
+        $replaceRoot: {
+          newRoot: { $mergeObjects: ["$doc", { item_detail: "$item_detail" }] }
+        }
+      }
+    ]);
+
+    if (isRangeMode) {
+      return res.status(200).json({
+        label: labels,
+        value: MasterItem
+      });
+    }
+
+    return res.status(200).json(MasterItem);
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: error.message });
@@ -1035,7 +1323,7 @@ const updateNewItemDetail = async (req, res) => {
 
       const result = await Item.updateOne(
         { item_nama: itemId.toString(),
-          companyCode: [0, 1], }, // Pastikan string
+          companyCode: data.companyCode, }, // Pastikan string
         { $push: { item_detail: newDetail } }
       );
 
@@ -1219,6 +1507,7 @@ module.exports = {
   getMasterItemId,
   getMasterItemName,
   getMasterItemWithInOutSummarySafe,
+  getMasterItemWithInOutAnnual,
   createMasterItem,
   createMasterItemGambar,
   createMasterItemExisting,

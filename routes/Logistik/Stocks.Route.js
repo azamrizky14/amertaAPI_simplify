@@ -22,6 +22,7 @@ router.post("/StockSo/createSo", Stock.createSo);
 router.get("/getStockByLocation/:domain/:hierarchy/:location/:deleted?", itemController.getMasterItemByLocation);
 router.get("/getAllStockWithLocation/:domain/:hierarchy", itemController.getAllMasterItemWithLocation);
 router.get("/getAllStockTotalInOut/:domain/:hierarchy/:deleted?", itemController.getMasterItemWithInOutSummarySafe);
+router.get("/getAllStockTotalInOutGraph/:domain/:hierarchy/:deleted?", itemController.getMasterItemWithInOutAnnual);
 
 
 router.post("/updateNewStockDetail", itemController.updateNewItemDetail);

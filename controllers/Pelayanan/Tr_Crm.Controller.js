@@ -111,6 +111,35 @@ const countTrCrmByMonth = async (req,res) =>{
     res.status(500).json({ message: error.message });
   }
 };
+
+const countTrCrmByDate = async(req,res) =>{
+    try {
+    const { domain, hierarchy, deleted } = req.params;
+    const { year } = req.query;
+
+    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1.2);
+    const filter = { companyCode: newDomain };
+    // Jika filter tahun diberikan
+    if (year) {
+      // Asumsikan Data_lead_created dalam format "YYYY-MM-DD"
+      filter.$expr = {
+        $eq: [{ $substr: ["$Tr_crm_created", 0, 10] }, year],
+      };
+    }
+
+    if (deleted) {
+      filter.Tr_crm_status = deleted;
+    }
+
+    // Dapatkan data
+    const DataCRM = await TrCrm.find(filter);
+
+    // Kirim jumlah hasil
+    res.status(200).json({ count: DataCRM.length });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 // CREATE 
 const createTrCrm = async (req, res) => {
     try {
@@ -147,6 +176,7 @@ module.exports = {
     getTrCrmById,
     getTrCrmPrefix,
     countTrCrmByMonth,
+    countTrCrmByDate,
     createTrCrm,
     updateTrCrm,
 };
