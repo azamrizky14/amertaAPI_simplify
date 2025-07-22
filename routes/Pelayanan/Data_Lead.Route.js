@@ -5,6 +5,7 @@ const DataLeadController = require("../../controllers/Pelayanan/Data_Lead.Contro
 
 // GET
 router.get("/getDataLead/:domain/:hierarchy/:deleted?", DataLeadController.getDataLead);
+router.get("/getDataLeadByUserAccess", DataLeadController.getDataLeadByUserAccess);
 router.get("/getDataLeadById/:id", DataLeadController.getDataLeadById);
 router.get("/getDataLeadByStatusLead/:domain/:hierarchy/:statuslead/:deleted?", DataLeadController.getDataLeadBystatuslead);
 router.get("/getDataLeadByAfiliasi/:afiliasi", DataLeadController.getDataLeadByAfiliasi);

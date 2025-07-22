@@ -1,0 +1,21 @@
+{
+    "Data_target_name":"",
+    "Data_target_division":"",
+    "Data_target_detail":{
+        "Data_target_detail_function":"",
+        "Data_target_detail_id":"",
+        "Data_target_detail_name":"",
+        "Data_target_detail_target":"",
+        "Data_target_detail_keterangan":"",
+        "Data_target_detail_duration":""
+    },
+    "Data_target_status":"Y",
+    "Data_target_created":"",
+    "Data_target_updated":[
+        {
+            "Data_target_updated_name":"",
+            "Data_target_updated_tanggal":""
+        }
+    ],
+    "companyName":""
+}

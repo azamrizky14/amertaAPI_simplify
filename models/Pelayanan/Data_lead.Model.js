@@ -50,6 +50,9 @@ const DataLeadSchema = mongoose.Schema(
     Data_lead_updated: {
       type: Array,
     },
+    Data_lead_access: {
+      type: Array,
+    },
     companyName: {
       type: String,
     },

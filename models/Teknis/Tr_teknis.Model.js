@@ -55,7 +55,7 @@ const Tr_teknisSchema = mongoose.Schema({
     },
     Tr_teknis_jenis: {
         type: String,
-        // enum: ["PSB", "MT", "INFRA"],
+        // enum: ["PSB", "MT", "INFRA", "DISMANTLE"],
     },
     Tr_teknis_work_order_tersedia: {
         type: Array,
