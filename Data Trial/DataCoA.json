@@ -1,0 +1,49 @@
+{
+  "Data_coa_struktur_akun_code": "1000",
+  "Data_coa_struktur_akun_nama": "ASET",
+  "Data_coa_struktur_akun_tipe": "Header",
+  "Data_coa_struktur_akun_list": [
+    {
+      "Data_coa_struktur_akun_list_tipe_akun_code": "1100",
+      "Data_coa_struktur_akun_list_tipe_akun_nama": "ASET LANCAR",
+      "Data_coa_struktur_akun_list_tipe_akun_tipe": "Header",
+      "data_coa_struktur_akun_list_tipe_akun_list": [
+        {
+          "data_coa_struktur_akun_list_tipe_akun_list_akun_kode": "1110",
+          "data_coa_struktur_akun_list_tipe_akun_list_akun_nama": "Kas",
+          "data_coa_struktur_akun_list_tipe_akun_list_akun_tipe": "Detail",
+          "data_coa_struktur_akun_list_tipe_akun_list_akun_deskripsi": "Uang Tunai"
+        },
+        {
+          "data_coa_struktur_akun_list_tipe_akun_list_akun_kode": "1120",
+          "data_coa_struktur_akun_list_tipe_akun_list_akun_nama": "Bank",
+          "data_coa_struktur_akun_list_tipe_akun_list_akun_tipe": "Detail",
+          "data_coa_struktur_akun_list_tipe_akun_list_akun_deskripsi": "Saldo Bank"
+        }
+      ]
+    },
+    {
+      "Data_coa_struktur_akun_list_tipe_akun_code": "1200",
+      "Data_coa_struktur_akun_list_tipe_akun_nama": "ASET TETAP",
+      "Data_coa_struktur_akun_list_tipe_akun_tipe": "Header",
+      "data_coa_struktur_akun_list_tipe_akun_list": [
+        {
+          "data_coa_struktur_akun_list_tipe_akun_list_akun_kode": "1210",
+          "data_coa_struktur_akun_list_tipe_akun_list_akun_nama": "Kendaraan",
+          "data_coa_struktur_akun_list_tipe_akun_list_akun_tipe": "Detail",
+          "data_coa_struktur_akun_list_tipe_akun_list_akun_deskripsi": "Akomodasi"
+        }
+      ]
+    }
+  ],
+  "Data_coa_status": "Y",
+  "Data_coa_created": "20-02-2025",
+  "Data_coa_updated": [
+    {
+      "Data_coa_updated_nama": "SALES-INTERNAL",
+      "Data_coa_updated_tanggal": "20-02-2025"
+    }
+  ],
+  "companyName": "",
+  "companyCode": []
+}

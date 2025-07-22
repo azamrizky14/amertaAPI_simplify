@@ -34,6 +34,7 @@ const Announcement = require("./routes/Umum/Announcement.Route.js");
 const PortGateway = require("./routes/Umum/PortGateway.Route.js");
 const Cronjob = require("./routes/cronjobroute/cronjob.Route.js");
 const Distance = require("./routes/Umum/Distance.Route.js");
+const DataTarget = require("./routes/Umum/Data_target.Route.js");
 
 // Connect mikrotik
 const Mikrotik = require("./routes/Mikrotik/Mikrotik.Route.js");
@@ -88,6 +89,7 @@ app.use("/api/announcement", Announcement);
 app.use("/api/portgateway", PortGateway);
 app.use("/api/mikrotik", Mikrotik);
 app.use("/api/jarak", Distance);
+app.use("/api/DataTarget", DataTarget);
 
 app.get("/", (req, res) => {
   res.send("Hello from Node API Server Updated");

@@ -1,0 +1,50 @@
+{
+  "Tr_pemasukan_nama": "PROYEK PEMBANGUNAN KOTA A",
+  "Tr_pemasukan_kategori": "PROYEK BESAR",
+  "Tr_pemasukan_pic": [
+    {
+      "Tr_pemasukan_pic_nama": "",
+      "Tr_pemasukan_pic_bagian": ""
+    },
+    {
+      "Tr_pemasukan_pic_nama": "",
+      "Tr_pemasukan_pic_bagian": ""
+    }
+  ],
+  "Tr_pemasukan_kebutuhan": [
+    {
+      "Tr_pemasukan_kebutuhan_nama_material": "",
+      "Tr_pemasukan_kebutuhan_jasa":"",
+      "Tr_pemasukan_kebutuhan_jumlah": "",
+      "Tr_pemasukan_kebutuhan_harga": ""
+    },
+    {
+      "Tr_pemasukan_kebutuhan_nama_material": "",
+      "Tr_pemasukan_kebutuhan_jasa":"",
+      "Tr_pemasukan_kebutuhan_jumlah": "",
+      "Tr_pemasukan_kebutuhan_harga": ""
+    }
+  ],
+  "Tr_pemasukan_total_harga": "",
+  "Tr_pemasukan_progress": [
+    {
+      "Tr_pemasukan_progress_image_evident": "",
+      "Tr_pemasukan_progress_percentage": ""
+    },
+    {
+      "Tr_pemasukan_progress_image_evident": "",
+      "Tr_pemasukan_progress_percentage": ""
+    }
+  ],
+  "Tr_pemasukan_image_invoice": "",
+  "Tr_pemasukan_status": "Y",
+  "Tr_pemasukan_created": "20-02-2025",
+  "Tr_pemasukan_updated": [
+    {
+      "Tr_pemasukan_updated_nama": "Adminpemasukan",
+      "Tr_pemasukan_updated_tanggal": "20-02-2025"
+    }
+  ],
+  "companyName": "",
+  "companyCode": []
+}

@@ -15,6 +15,20 @@ const getDataLead = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+// GET BY USER ACCESS ARRAY
+const getDataLeadByUserAccess = async (req, res) => {
+  try {
+    const { access } = req.query;
+    const filter = {};
+    if (access) {
+      filter["Data_lead_access.Data_lead_access_user"] = access;
+    }
+    const result = await DataLead.find(filter);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 // GET BY statuslead
 const getDataLeadBystatuslead = async (req, res) => {
   try {
@@ -49,7 +63,7 @@ const countDataLeadByAfiliasi = async (req, res) => {
     const { afiliasi } = req.params;
     const filter = { Data_lead_afiliasi: afiliasi };
     const MasterDataLead = await DataLead.find(filter);
-    res.status(200).json(MasterDataLead.length)
+    res.status(200).json(MasterDataLead.length);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -84,7 +98,7 @@ const countDataLeadByMonth = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-const countDataLeadByDate = async (req,res) =>{
+const countDataLeadByDate = async (req, res) => {
   try {
     const { domain, hierarchy, deleted } = req.params;
     const { year } = req.query;
@@ -113,8 +127,8 @@ const countDataLeadByDate = async (req,res) =>{
   }
 };
 
-const countDataLeadByAfiliasiandMonth = async (req,res) =>{
- try {
+const countDataLeadByAfiliasiandMonth = async (req, res) => {
+  try {
     const { afiliasi } = req.params;
     const { year } = req.query;
     const filter = { Data_lead_afiliasi: afiliasi };
@@ -127,7 +141,6 @@ const countDataLeadByAfiliasiandMonth = async (req,res) =>{
       };
     }
 
-
     // Dapatkan data
     const MasterDataLead = await DataLead.find(filter);
 
@@ -138,7 +151,7 @@ const countDataLeadByAfiliasiandMonth = async (req,res) =>{
   }
 };
 
-const countDataLeadByAfiliasiandDate = async (req,res) =>{
+const countDataLeadByAfiliasiandDate = async (req, res) => {
   try {
     const { afiliasi } = req.params;
     const { year } = req.query;
@@ -151,7 +164,6 @@ const countDataLeadByAfiliasiandDate = async (req,res) =>{
         $eq: [{ $substr: ["$Data_lead_created", 0, 10] }, year],
       };
     }
-
 
     // Dapatkan data
     const MasterDataLead = await DataLead.find(filter);
@@ -245,6 +257,7 @@ const updateDataLead = async (req, res) => {
 
 module.exports = {
   getDataLead,
+  getDataLeadByUserAccess,
   getDataLeadBystatuslead,
   getDataLeadByAfiliasi,
   countDataLeadByAfiliasi,
