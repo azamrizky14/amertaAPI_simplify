@@ -36,6 +36,11 @@ const Cronjob = require("./routes/cronjobroute/cronjob.Route.js");
 const Distance = require("./routes/Umum/Distance.Route.js");
 const DataTarget = require("./routes/Umum/Data_target.Route.js");
 
+
+// Keuangan 
+const DataCoa = require("./routes/Keuangan/DataCoa.Route.js");
+const TrPemasukan = require("./routes/Keuangan/Tr_pemasukan.Route.js");
+
 // Connect mikrotik
 const Mikrotik = require("./routes/Mikrotik/Mikrotik.Route.js");
 
@@ -90,6 +95,8 @@ app.use("/api/portgateway", PortGateway);
 app.use("/api/mikrotik", Mikrotik);
 app.use("/api/jarak", Distance);
 app.use("/api/DataTarget", DataTarget);
+app.use("/api/DataCoa", DataCoa);
+app.use("/api/TrPemasukan", TrPemasukan);
 
 app.get("/", (req, res) => {
   res.send("Hello from Node API Server Updated");
@@ -101,10 +108,10 @@ app.get("/ping", (req, res) => {
 
 mongoose
   .connect(
-    "mongodb://103.178.13.50:136/internal-amerta"
-    // "mongodb://103.178.13.50:236/internal-amerta"
+    // "mongodb://103.178.13.50:136/internal-amerta"
+    "mongodb://103.178.13.50:236/internal-amerta"
 
-    // "mongodb://localhost:27017/internal-amerta"
+    // "mongodb://127.0.0.1:27017/internal-amerta"
     // "mongodb://root:ServerAmerta2024@77.37.47.90:27017/dbAmerta"
   )
   .then(() => {
