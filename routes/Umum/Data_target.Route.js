@@ -7,6 +7,10 @@ router.get("/getDataTarget/:deleted?", DataTargetController.getDataTarget);
 router.get("/getDataTargetById/:id", DataTargetController.getDataTargetById);
 router.get("/getDataTargetByUserId/:id", DataTargetController.getDataTargetBySalesId)
 
+router.get("/getDataTargetPerBulan/:deleted?", DataTargetController.getDataTargetPerBulan);
+router.get("/getDataTargetPerRangeBulan/:deleted?", DataTargetController.getDataTargetPerRangeBulan);
+
+
 // POST
 router.post("/createDataTarget", DataTargetController.createDataTarget);
 

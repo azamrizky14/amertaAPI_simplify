@@ -15,6 +15,7 @@ const getDataLead = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 // GET BY USER ACCESS ARRAY
 const getDataLeadByUserAccess = async (req, res) => {
   try {
@@ -29,6 +30,451 @@ const getDataLeadByUserAccess = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// GET FLATTENED KUNJUNGAN BY USER ACCESS
+const getFlattenedKunjunganByUserAccess = async (req, res) => {
+  try {
+    const { access = "", date, month, type } = req.query;
+
+    const matchConditions = [];
+
+    // Kalau ada access dan bukan string kosong
+    if (access && access.trim() !== "") {
+      matchConditions.push({
+        "Data_lead_kunjungan.Data_lead_kunjungan_user": access
+      });
+    }
+
+    const kunjunganFilter = [];
+
+    // Tambahkan filter access jika ada
+    if (access && access.trim() !== "") {
+      kunjunganFilter.push({
+        $eq: ["$$kunjungan.Data_lead_kunjungan_user", access]
+      });
+    }
+
+    // Filter berdasarkan tanggal
+    if (date) {
+      kunjunganFilter.push({
+        $eq: ["$$kunjungan.Data_lead_kunjungan_tanggal", date]
+      });
+    }
+
+    // Filter berdasarkan bulan
+    if (month) {
+      kunjunganFilter.push({
+        $eq: [
+          { $substr: ["$$kunjungan.Data_lead_kunjungan_tanggal", 0, 7] },
+          month
+        ]
+      });
+    }
+
+    const pipeline = [
+      ...(matchConditions.length > 0 ? [{ $match: { $and: matchConditions } }] : []),
+      {
+        $project: {
+          Data_lead_nama: 1,
+          Data_lead_phone: 1,
+          filteredKunjungan: {
+            $filter: {
+              input: "$Data_lead_kunjungan",
+              as: "kunjungan",
+              cond: kunjunganFilter.length > 0 ? { $and: kunjunganFilter } : {}, // ambil semua kalau kosong
+            },
+          },
+        },
+      },
+      { $unwind: "$filteredKunjungan" },
+      {
+        $project: {
+          leadId: "$_id",
+          leadNama: "$Data_lead_nama",
+          leadPhone: "$Data_lead_phone",
+          kunjunganTanggal: "$filteredKunjungan.Data_lead_kunjungan_tanggal",
+          kunjunganRespons: "$filteredKunjungan.Data_lead_kunjungan_respons",
+          kunjunganKeterangan: "$filteredKunjungan.Data_lead_kunjungan_keterangan",
+          kunjunganEvident: "$filteredKunjungan.Data_lead_kunjungan_evident",
+          kunjunganTimestamp: "$filteredKunjungan.Data_lead_kunjungan_timestamp",
+          kunjunganUser: "$filteredKunjungan.Data_lead_kunjungan_user",
+        },
+      },
+    ];
+
+    const results = await DataLead.aggregate(pipeline);
+
+    if (type === "total") {
+      return res.status(200).json({ total: results.length });
+    }
+
+    res.status(200).json(results);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getAnnualLeadCreated = async (req, res) => {
+  try {
+    const { year } = req.query;
+    if (!year) return res.status(400).json({ message: "Parameter 'year' wajib diisi." });
+
+    const start = new Date(`${year}-01-01`);
+    const end = new Date(`${parseInt(year) + 1}-01-01`);
+
+    const result = await DataLead.aggregate([
+      {
+        $match: {
+          Data_lead_created: { $regex: /^\d{4}-\d{2}-\d{2}$/, $ne: "NaT" }
+        }
+      },
+      {
+        $addFields: {
+          createdDate: {
+            $dateFromString: {
+              dateString: "$Data_lead_created",
+              format: "%Y-%m-%d"
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          createdDate: { $gte: start, $lt: end }
+        }
+      },
+      {
+        $group: {
+          _id: { month: { $month: "$createdDate" } },
+          total: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const value = Array(12).fill(0);
+    result.forEach(r => value[r._id.month - 1] = r.total);
+
+    res.status(200).json({ label: labels, value });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getRangeLeadCreated = async (req, res) => {
+  try {
+    const { month, range } = req.query;
+    if (!month || !range) return res.status(400).json({ message: "Parameter 'month' dan 'range' wajib diisi." });
+
+    const inputDate = new Date(`${month}-01`);
+    const rangeInt = parseInt(range);
+    const totalGroups = 6;
+
+    const groups = Array.from({ length: totalGroups }, (_, i) => {
+      const start = new Date(inputDate);
+      start.setMonth(start.getMonth() - ((totalGroups - 1 - i) * rangeInt));
+      const end = new Date(start);
+      end.setMonth(end.getMonth() + rangeInt);
+
+      const endLabel = new Date(end);
+      endLabel.setDate(0);
+
+      const label = `${start.toLocaleString("default", { month: "short" })} ${start.getFullYear()} - ${endLabel.toLocaleString("default", { month: "short" })} ${endLabel.getFullYear()}`;
+      return { start, end, label };
+    });
+
+    const earliestDate = groups[0].start;
+    const latestDate = groups[groups.length - 1].end;
+
+    const rawData = await DataLead.aggregate([
+      {
+        $match: {
+          Data_lead_created: { $regex: /^\d{4}-\d{2}-\d{2}$/, $ne: "NaT" }
+        }
+      },
+      {
+        $addFields: {
+          createdDate: {
+            $dateFromString: {
+              dateString: "$Data_lead_created",
+              format: "%Y-%m-%d"
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          createdDate: { $gte: earliestDate, $lt: latestDate }
+        }
+      },
+      {
+        $project: {
+          createdDate: 1
+        }
+      }
+    ]);
+
+    const values = groups.map(({ start, end }) =>
+      rawData.filter(x => x.createdDate >= start && x.createdDate < end).length
+    );
+
+    const labels = groups.map(g => g.label);
+
+    res.status(200).json({ label: labels, value: values });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getAnnualLeadVisit = async (req, res) => {
+  try {
+    const { year } = req.query;
+    if (!year) return res.status(400).json({ message: "Parameter 'year' wajib diisi." });
+
+    const start = new Date(`${year}-01-01`);
+    const end = new Date(`${parseInt(year) + 1}-01-01`);
+
+    const result = await DataLead.aggregate([
+      { $unwind: "$Data_lead_kunjungan" },
+      {
+        $match: {
+          "Data_lead_kunjungan.Data_lead_kunjungan_tanggal": {
+            $regex: /^\d{4}-\d{2}-\d{2}$/, // pastikan format YYYY-MM-DD
+            $ne: "NaT" // hindari nilai 'NaT'
+          }
+        }
+      },
+      {
+        $addFields: {
+          kunjunganDate: {
+            $dateFromString: {
+              dateString: "$Data_lead_kunjungan.Data_lead_kunjungan_tanggal",
+              format: "%Y-%m-%d"
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          kunjunganDate: { $gte: start, $lt: end }
+        }
+      },
+      {
+        $group: {
+          _id: { month: { $month: "$kunjunganDate" } },
+          total: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const value = Array(12).fill(0);
+    result.forEach((r) => value[r._id.month - 1] = r.total);
+
+    res.status(200).json({ label: labels, value });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getRangeLeadVisit = async (req, res) => {
+  try {
+    const { month, range } = req.query;
+    if (!month || !range) return res.status(400).json({ message: "Parameter 'month' dan 'range' wajib diisi." });
+
+    const inputDate = new Date(`${month}-01`);
+    const rangeInt = parseInt(range);
+    const totalGroups = 6;
+
+    const groups = Array.from({ length: totalGroups }, (_, i) => {
+      const start = new Date(inputDate);
+      start.setMonth(start.getMonth() - ((totalGroups - 1 - i) * rangeInt));
+      const end = new Date(start);
+      end.setMonth(end.getMonth() + rangeInt);
+
+      const endLabel = new Date(end);
+      endLabel.setDate(0);
+
+      const label = `${start.toLocaleString("default", { month: "short" })} ${start.getFullYear()} - ${endLabel.toLocaleString("default", { month: "short" })} ${endLabel.getFullYear()}`;
+      return { start, end, label };
+    });
+
+    const earliestDate = groups[0].start;
+    const latestDate = groups[groups.length - 1].end;
+
+    const rawData = await DataLead.aggregate([
+      { $unwind: "$Data_lead_kunjungan" },
+      {
+        $match: {
+          "Data_lead_kunjungan.Data_lead_kunjungan_tanggal": {
+            $regex: /^\d{4}-\d{2}-\d{2}$/, // valid format
+            $ne: "NaT"
+          }
+        }
+      },
+      {
+        $addFields: {
+          kunjunganDate: {
+            $dateFromString: {
+              dateString: "$Data_lead_kunjungan.Data_lead_kunjungan_tanggal",
+              format: "%Y-%m-%d"
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          kunjunganDate: { $gte: earliestDate, $lt: latestDate }
+        }
+      },
+      {
+        $project: {
+          kunjunganDate: 1
+        }
+      }
+    ]);
+
+    const values = groups.map(({ start, end }) =>
+      rawData.filter(x => x.kunjunganDate >= start && x.kunjunganDate < end).length
+    );
+
+    const labels = groups.map(g => g.label);
+
+    res.status(200).json({ label: labels, value: values });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getAnnualClosedByLastUpdated = async (req, res) => {
+  try {
+    const { year } = req.query;
+    if (!year) return res.status(400).json({ message: "Parameter 'year' wajib diisi." });
+
+    const start = new Date(`${year}-01-01`);
+    const end = new Date(`${parseInt(year) + 1}-01-01`);
+
+    const result = await DataLead.aggregate([
+      {
+        $match: {
+          Data_lead_status_lead: "Closed",
+          "Data_lead_updated.0": { $exists: true }
+        }
+      },
+      {
+        $addFields: {
+          lastUpdated: {
+            $arrayElemAt: ["$Data_lead_updated", -1]
+          }
+        }
+      },
+      {
+        $addFields: {
+          updatedDate: {
+            $dateFromString: {
+              dateString: "$lastUpdated.Data_lead_updated_tanggal",
+              format: "%Y-%m-%d"
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          updatedDate: { $gte: start, $lt: end }
+        }
+      },
+      {
+        $group: {
+          _id: { month: { $month: "$updatedDate" } },
+          total: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const value = Array(12).fill(0);
+    result.forEach(r => value[r._id.month - 1] = r.total);
+
+    res.status(200).json({ label: labels, value });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getRangeClosedByLastUpdated = async (req, res) => {
+  try {
+    const { month, range } = req.query;
+    if (!month || !range) return res.status(400).json({ message: "Parameter 'month' dan 'range' wajib diisi." });
+
+    const inputDate = new Date(`${month}-01`);
+    const rangeInt = parseInt(range);
+    const totalGroups = 6;
+
+    const groups = Array.from({ length: totalGroups }, (_, i) => {
+      const start = new Date(inputDate);
+      start.setMonth(start.getMonth() - ((totalGroups - 1 - i) * rangeInt));
+      const end = new Date(start);
+      end.setMonth(end.getMonth() + rangeInt);
+
+      const endLabel = new Date(end);
+      endLabel.setDate(0);
+
+      const label = `${start.toLocaleString("default", { month: "short" })} ${start.getFullYear()} - ${endLabel.toLocaleString("default", { month: "short" })} ${endLabel.getFullYear()}`;
+      return { start, end, label };
+    });
+
+    const earliestDate = groups[0].start;
+    const latestDate = groups[groups.length - 1].end;
+
+    const rawData = await DataLead.aggregate([
+      {
+        $match: {
+          Data_lead_status_lead: "Closed",
+          "Data_lead_updated.0": { $exists: true }
+        }
+      },
+      {
+        $addFields: {
+          lastUpdated: {
+            $arrayElemAt: ["$Data_lead_updated", -1]
+          }
+        }
+      },
+      {
+        $addFields: {
+          updatedDate: {
+            $dateFromString: {
+              dateString: "$lastUpdated.Data_lead_updated_tanggal",
+              format: "%Y-%m-%d"
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          updatedDate: { $gte: earliestDate, $lt: latestDate }
+        }
+      },
+      {
+        $project: {
+          updatedDate: 1
+        }
+      }
+    ]);
+
+    const values = groups.map(({ start, end }) =>
+      rawData.filter(x => x.updatedDate >= start && x.updatedDate < end).length
+    );
+
+    const labels = groups.map(g => g.label);
+
+    res.status(200).json({ label: labels, value: values });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 // GET BY statuslead
 const getDataLeadBystatuslead = async (req, res) => {
   try {
@@ -129,9 +575,12 @@ const countDataLeadByDate = async (req, res) => {
 
 const countDataLeadByAfiliasiandMonth = async (req, res) => {
   try {
-    const { afiliasi } = req.params;
-    const { year } = req.query;
-    const filter = { Data_lead_afiliasi: afiliasi };
+    const { afiliasi, year } = req.query;
+    const filter = {};
+
+    if (afiliasi) {
+      filter.Data_lead_afiliasi = afiliasi
+    }
 
     // Jika filter tahun diberikan
     if (year) {
@@ -153,9 +602,12 @@ const countDataLeadByAfiliasiandMonth = async (req, res) => {
 
 const countDataLeadByAfiliasiandDate = async (req, res) => {
   try {
-    const { afiliasi } = req.params;
-    const { year } = req.query;
-    const filter = { Data_lead_afiliasi: afiliasi };
+    const { afiliasi, year } = req.query;
+    const filter = {};
+
+    if (afiliasi) {
+      filter.Data_lead_afiliasi = afiliasi
+    }
 
     // Jika filter tahun diberikan
     if (year) {
@@ -258,6 +710,13 @@ const updateDataLead = async (req, res) => {
 module.exports = {
   getDataLead,
   getDataLeadByUserAccess,
+  getFlattenedKunjunganByUserAccess,
+  getAnnualLeadCreated,
+  getRangeLeadCreated,
+  getAnnualLeadVisit,
+  getRangeLeadVisit,
+  getAnnualClosedByLastUpdated,
+  getRangeClosedByLastUpdated,
   getDataLeadBystatuslead,
   getDataLeadByAfiliasi,
   countDataLeadByAfiliasi,
