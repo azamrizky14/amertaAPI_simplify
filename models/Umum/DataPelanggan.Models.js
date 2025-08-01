@@ -69,6 +69,9 @@ const DataPelangganSchema = mongoose.Schema(
     data_pelanggan_updated: {
       type: Array,
     },
+    data_pelanggan_images: {
+      type: Object,
+    },
     companyName: {
       type: String,
     },
