@@ -16,11 +16,11 @@ const DataLeadSchema = mongoose.Schema(
     },
     Data_lead_status_lead: {
       type: String,
-      // required: true,
+      required: true,
     },
     Data_lead_score: {
       type: String,
-      // required: true,
+      required: true,
     },
     Data_lead_kunjungan: {
       type: Array,
@@ -28,9 +28,6 @@ const DataLeadSchema = mongoose.Schema(
     },
     Data_lead_provider: {
       type: Object,
-    },
-    Data_lead_alamat: {
-      type: String,
     },
     Data_lead_lokasi: {
       type: String,

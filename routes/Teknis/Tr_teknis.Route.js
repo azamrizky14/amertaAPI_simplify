@@ -3,6 +3,7 @@ const multer = require("multer");
 
 const router = express.Router();
 const TrTeknis = require('../../controllers/Teknis/Tr_teknis.Controller.js');
+const TrTeknisAgregate = require('../../controllers/Teknis/Tr_teknis.Agregate.Controller.js')
 // / Multer storage configuration
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
@@ -35,6 +36,13 @@ router.put("/Trteknis/updateWorkOrderNonGambar", TrTeknis.updateTrTeknisWorkOrde
 router.put("/Trteknis/updateImageById/:id", upload.any(), TrTeknis.updateTrTeknisGambar);
 router.put("/Trteknis/updateWorkOrder", upload.any(), TrTeknis.updateTrTeknisWorkOrderTerpakai);
 router.put("/Trteknis/updateEvidentbyid/:logistikType/:logistikdate/:logistikNumber/:id", TrTeknis.updateTrTeknisEvidentById);
+
+
+
+// Agregations 
+router.get("/Trteknis/aggregate/perolehanteknisibyname", TrTeknisAgregate.TrTeknisAgregatePerolehanTeknisi);
+router.get("/Trteknis/aggregate/listperolehanteknisi",TrTeknisAgregate.TrTeknisAgregateListPerolehanTeknisi)
+router.get("/Trteknis/aggregate/listdurasipenyelesaianAVG",TrTeknisAgregate.TrTeknisAgregateListDurasiPenyelesaianAVG)
 
 
 

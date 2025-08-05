@@ -150,6 +150,7 @@ const getTrTeknisEvidentByMonth = async (req, res) => {
     };
 
     if (type) query.Tr_teknis_jenis = type;
+    if ((type === 'PSB' || type === 'MT') && domain === '0,2') query.Tr_teknis_jenis = "PSN"
 
     // Ambil hanya field yang dibutuhkan
     const data = await Tr_teknis.find(
@@ -159,6 +160,7 @@ const getTrTeknisEvidentByMonth = async (req, res) => {
 
     // Flatten semua work order yang ada
     const allWorkOrders = data.flatMap(item => item.Tr_teknis_work_order_terpakai || []);
+
 
     // Parse bulan untuk filter tanggal
     const startDate = new Date(`${month}-01T00:00:00Z`);
@@ -184,7 +186,6 @@ const getTrTeknisEvidentByMonth = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
-
 
 // const getAllWorkOrders = async (req, res) => {
 //   try {
