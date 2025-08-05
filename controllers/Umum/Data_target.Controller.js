@@ -14,6 +14,7 @@ const getDataTarget = async (req, res) => {
   }
 };
 
+
 // GET TOTAL TARGET PER BULAN BERDASARKAN TAHUN
 const getDataTargetPerBulan = async (req, res) => {
   try {
@@ -95,22 +96,22 @@ const getDataTargetPerRangeBulan = async (req, res) => {
     const groups = Array.from({ length: totalGroups }, (_, i) => {
       const start = new Date(inputDate);
       start.setMonth(start.getMonth() - ((totalGroups - 1 - i) * monthsPerGroup));
-    
+
       const end = new Date(start);
       end.setMonth(end.getMonth() + monthsPerGroup); // eksklusif
-    
+
       const lastMonth = new Date(end);
       lastMonth.setMonth(end.getMonth() - 1); // bulan terakhir yang termasuk
-    
+
       const label = `${start.toLocaleString('default', { month: 'short' })} ${start.getFullYear()} - ${lastMonth.toLocaleString('default', { month: 'short' })} ${lastMonth.getFullYear()}`;
-    
+
       return {
         label,
         start,
         end
       };
     });
-    
+
 
     // Ambil data yang berada dalam rentang seluruh grup
     const earliestDate = groups[0].start;
@@ -156,7 +157,6 @@ const getDataTargetPerRangeBulan = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 // FIND ONE BY ID
 const getDataTargetById = async (req, res) => {

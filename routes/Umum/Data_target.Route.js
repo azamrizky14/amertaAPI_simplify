@@ -9,8 +9,6 @@ router.get("/getDataTargetByUserId/:id", DataTargetController.getDataTargetBySal
 
 router.get("/getDataTargetPerBulan/:deleted?", DataTargetController.getDataTargetPerBulan);
 router.get("/getDataTargetPerRangeBulan/:deleted?", DataTargetController.getDataTargetPerRangeBulan);
-
-
 // POST
 router.post("/createDataTarget", DataTargetController.createDataTarget);
 

@@ -29,7 +29,7 @@ const DataLeadSchema = mongoose.Schema(
     Data_lead_provider: {
       type: Object,
     },
-    Data_lead_alamat: {
+Data_lead_alamat: {
       type: String,
     },
     Data_lead_lokasi: {

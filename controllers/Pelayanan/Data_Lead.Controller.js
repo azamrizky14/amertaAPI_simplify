@@ -474,7 +474,6 @@ const getRangeClosedByLastUpdated = async (req, res) => {
   }
 };
 
-
 // GET BY statuslead
 const getDataLeadBystatuslead = async (req, res) => {
   try {
@@ -575,6 +574,7 @@ const countDataLeadByDate = async (req, res) => {
 
 const countDataLeadByAfiliasiandMonth = async (req, res) => {
   try {
+    
     const { afiliasi, year } = req.query;
     const filter = {};
 
@@ -602,6 +602,7 @@ const countDataLeadByAfiliasiandMonth = async (req, res) => {
 
 const countDataLeadByAfiliasiandDate = async (req, res) => {
   try {
+    
     const { afiliasi, year } = req.query;
     const filter = {};
 
@@ -711,7 +712,7 @@ module.exports = {
   getDataLead,
   getDataLeadByUserAccess,
   getFlattenedKunjunganByUserAccess,
-  getAnnualLeadCreated,
+getAnnualLeadCreated,
   getRangeLeadCreated,
   getAnnualLeadVisit,
   getRangeLeadVisit,
