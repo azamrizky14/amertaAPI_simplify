@@ -60,20 +60,20 @@ const getTrTicketByTrUpdatedHarian = async (req, res) => {
     // Eksekusi query
     const MasterTrTicket = await TrTicket.find(filter).lean();
     const FilteredMasterTrTicket = MasterTrTicket.flatMap((ticket) =>
-  ticket.Tr_ticket_completition_history
-    .filter((history) => history.Tr_ticket_completition_tanggal === tgl)
-    .map((history) => ({
-      // data dari parent
-      Tr_ticket_id: ticket.Tr_ticket_id,
-      Tr_ticket_status: ticket.Tr_ticket_status,
-      Tr_ticket_name: ticket.Tr_ticket_name,
-      Tr_ticket_created: ticket.Tr_ticket_created,
-      Tr_ticket_data_pelanggan: ticket.Tr_ticket_data_pelanggan,
-      _id: ticket._id,
-      // data dari history
-      ...history,
-    }))
-);
+      ticket.Tr_ticket_completition_history.filter(
+        (history) => history.Tr_ticket_completition_tanggal === tgl
+      ).map((history) => ({
+        // data dari parent
+        Tr_ticket_id: ticket.Tr_ticket_id,
+        Tr_ticket_status: ticket.Tr_ticket_status,
+        Tr_ticket_name: ticket.Tr_ticket_name,
+        Tr_ticket_created: ticket.Tr_ticket_created,
+        Tr_ticket_data_pelanggan: ticket.Tr_ticket_data_pelanggan,
+        _id: ticket._id,
+        // data dari history
+        ...history,
+      }))
+    );
 
     res.status(200).json(FilteredMasterTrTicket);
   } catch (error) {
@@ -135,22 +135,14 @@ const getTrTicketById = async (req, res) => {
 const getTicketPrefix = async (req, res) => {
   try {
     const { type, date } = req.params;
-
     const newDate = date.replace(/-/g, "");
-    // Buat prefix berdasarkan parameter `type` dan `date`
     const prefix = `${type}-${newDate}`;
-
-    // Cari semua dokumen yang memiliki prefix sesuai di database
     const data = await TrTicket.find({
       Tr_ticket_id: { $regex: `^${prefix}` },
     });
-
-    // Jika tidak ada data dengan prefix tersebut, kembalikan ID pertama dengan angka '001'
     if (data.length === 0) {
       return res.json({ nextId: `${prefix}-001` });
     }
-
-    // Cari ID dengan angka terbesar dari hasil query
     const latestId = data.reduce((maxId, currentItem) => {
       const currentNumber = parseInt(
         currentItem.Tr_ticket_id.split("-").pop() || "0"
@@ -158,15 +150,9 @@ const getTicketPrefix = async (req, res) => {
       const maxNumber = parseInt(maxId.split("-").pop() || "0");
       return currentNumber > maxNumber ? currentItem.Tr_ticket_id : maxId;
     }, "");
-
-    // Ambil angka dari ID terbaru dan tambahkan 1
     const latestNumber = parseInt(latestId.split("-").pop() || "0");
     const nextNumber = (latestNumber + 1).toString().padStart(3, "0");
-
-    // Gabungkan prefix dengan angka yang baru
     const nextId = `${prefix}-${nextNumber}`;
-
-    // Kembalikan hasilnya
     res.json({ nextId });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -192,7 +178,7 @@ const updateTrTicket = async (req, res) => {
     if (!MasterTrTicket) {
       return res.status(404).json({ message: "MasterItem not found" });
     }
-    
+
     const updatedMasterTrTicket = await TrTicket.findById(id);
     res.status(200).json(updatedMasterTrTicket);
   } catch (error) {
@@ -201,36 +187,34 @@ const updateTrTicket = async (req, res) => {
 };
 
 const updateTrTicketHistory = async (req, res) => {
-    try {
-      const { id } = req.params;
-      const newHistory = req.body.Tr_ticket_completition_history;
-      const newUpdate = req.body.Tr_ticket_updated;
-  
-      const updatedTrTicket = await TrTicket.findByIdAndUpdate(
-        id,
-        {
-          $push: {
-            Tr_ticket_completition_history: newHistory,
-            Tr_ticket_updated: newUpdate
-          }
-        },
-        {
-          new: true,
-          runValidators: true
-        }
-      );
-  
-      if (!updatedTrTicket) {
-        return res.status(404).json({ message: "TrTicket not found" });
-      }
-  
-      res.status(200).json(updatedTrTicket);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  };
-  
+  try {
+    const { id } = req.params;
+    const newHistory = req.body.Tr_ticket_completition_history;
+    const newUpdate = req.body.Tr_ticket_updated;
 
+    const updatedTrTicket = await TrTicket.findByIdAndUpdate(
+      id,
+      {
+        $push: {
+          Tr_ticket_completition_history: newHistory,
+          Tr_ticket_updated: newUpdate,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!updatedTrTicket) {
+      return res.status(404).json({ message: "TrTicket not found" });
+    }
+
+    res.status(200).json(updatedTrTicket);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 module.exports = {
   getTrTicket,
@@ -241,5 +225,5 @@ module.exports = {
   getTicketPrefix,
   createTrTicket,
   updateTrTicket,
-  updateTrTicketHistory
+  updateTrTicketHistory,
 };

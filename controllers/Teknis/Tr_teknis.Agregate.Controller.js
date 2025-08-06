@@ -116,13 +116,19 @@ const TrTeknisAgregateListDurasiPenyelesaianAVG = async (req, res) => {
   const { companyName, startDate, endDate, status } = req.query;
 
   try {
+    const matchStage = {
+      Tr_teknis_tanggal: { $gt: startDate, $lt: endDate },
+      Tr_teknis_work_order_terpakai: { $exists: true, $not: { $size: 0 } },
+    };
+
+    if (companyName !== 'all') {
+
+      matchStage.companyName = companyName;
+    }
+
     const result = await Tr_teknis.aggregate([
       {
-        $match: {
-          companyName,
-          Tr_teknis_tanggal: { $gt: startDate, $lt: endDate },
-          Tr_teknis_work_order_terpakai: { $exists: true, $not: { $size: 0 } },
-        },
+        $match: matchStage,
       },
       { $unwind: "$Tr_teknis_work_order_terpakai" },
       {
