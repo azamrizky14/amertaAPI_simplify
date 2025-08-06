@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const Stock = require('../../controllers/Logistik/Stock.Controller.js');
 const itemController = require("../../controllers/Umum/Item.Controller");
+const StocksController = require("../../controllers/Logistik/Stock.Aggregate.Controller.js");
 
 // Stock History
 router.get("/StockSh/getdata/:domain/:hierarchy", Stock.getStockSh);
@@ -32,5 +33,10 @@ router.put("/updateEvidentStockDetail", itemController.updateEvidentItemDetail);
 router.put("/updateReturItemDetail", itemController.updateReturItemDetail);
 router.put("/updateClosingMaterialItemDetail", itemController.updateClosingMaterialItemDetail);
 router.put("/updateCurrentStockDetail", itemController.updateCurrentItemDetail);
+
+
+
+// AGREGATE 
+router.get("/StocksOpnameAsetAgregate/:companyName", StocksController.StockOpnameAgregateAllAset)
 
 module.exports = router;

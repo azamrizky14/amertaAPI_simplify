@@ -230,7 +230,7 @@ const getTrTeknisEvidentByMonth = async (req, res) => {
 const getAllWorkOrders = async (req, res) => {
   try {
     const { domain, hierarchy, type } = req.params;
-    const { month, range, deleted, mode } = req.query;
+    const { month, deleted, mode, startDate, endDate } = req.query;
 
     const companyCodes = await findByHierarchyAndDomain(hierarchy, domain, 1.1);
 
@@ -240,29 +240,27 @@ const getAllWorkOrders = async (req, res) => {
       ...(deleted && { Tr_teknis_deleted: deleted }),
     };
 
-    // Siapkan kondisi filter internal dalam $filter
     const dateFilters = [];
 
-    if (month) {
-      dateFilters.push({
-        $regexMatch: {
-          input: "$$item.Tr_teknis_tanggal",
-          regex: `^${month}`,
-        },
-      });
-    } else if (range) {
-      const monthsBack = parseInt(range, 10);
-      const today = new Date();
-      const past = new Date();
-      past.setMonth(today.getMonth() - monthsBack);
+    // ➤ Jika ada startDate dan endDate dari query
+    if (startDate && endDate) {
+      dateFilters.push(
+        { $gte: ["$$item.Tr_teknis_tanggal", startDate] },
+        { $lt: ["$$item.Tr_teknis_tanggal", endDate] }
+      );
+    }
+    // ➤ Kalau tidak ada startDate/endDate tapi ada month
+    else if (month) {
+      const fallbackStart = `${month}-01`;
+      const fallbackEnd = `${month}-31`; // aman secara lexicographical
 
-      const pastStr = past.toISOString().slice(0, 10); // format YYYY-MM-DD
-
-      dateFilters.push({
-        $gte: ["$$item.Tr_teknis_tanggal", pastStr],
-      });
+      dateFilters.push(
+        { $gte: ["$$item.Tr_teknis_tanggal", fallbackStart] },
+        { $lt: ["$$item.Tr_teknis_tanggal", fallbackEnd] }
+      );
     }
 
+    // ➤ Filter kategori teknis jika ada
     if (type) {
       dateFilters.push({
         $eq: ["$$item.Tr_teknis_kategori", type],
@@ -289,14 +287,8 @@ const getAllWorkOrders = async (req, res) => {
           "Tr_teknis_work_order_terpakai.0": { $exists: true },
         },
       },
-      {
-        $unwind: "$Tr_teknis_work_order_terpakai",
-      },
-      {
-        $replaceRoot: {
-          newRoot: "$Tr_teknis_work_order_terpakai",
-        },
-      },
+      { $unwind: "$Tr_teknis_work_order_terpakai" },
+      { $replaceRoot: { newRoot: "$Tr_teknis_work_order_terpakai" } },
     ];
 
     const result = await Tr_teknis.aggregate(pipeline);
@@ -315,6 +307,7 @@ const getAllWorkOrders = async (req, res) => {
     });
   }
 };
+
 
 // FIND ONE BY ID
 const getTrTeknisById = async (req, res) => {
