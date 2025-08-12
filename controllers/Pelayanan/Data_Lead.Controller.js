@@ -31,14 +31,14 @@ const getDataLeadByUserAccess = async (req, res) => {
   }
 };
 
+
 // GET FLATTENED KUNJUNGAN BY USER ACCESS
 const getFlattenedKunjunganByUserAccess = async (req, res) => {
   try {
-    const { access = "", date, month, type } = req.query;
+    const { access = "", startDate, endDate, month, type } = req.query;
 
     const matchConditions = [];
 
-    // Kalau ada access dan bukan string kosong
     if (access && access.trim() !== "") {
       matchConditions.push({
         "Data_lead_kunjungan.Data_lead_kunjungan_user": access
@@ -47,26 +47,27 @@ const getFlattenedKunjunganByUserAccess = async (req, res) => {
 
     const kunjunganFilter = [];
 
-    // Tambahkan filter access jika ada
     if (access && access.trim() !== "") {
       kunjunganFilter.push({
         $eq: ["$$kunjungan.Data_lead_kunjungan_user", access]
       });
     }
 
-    // Filter berdasarkan tanggal
-    if (date) {
-      kunjunganFilter.push({
-        $eq: ["$$kunjungan.Data_lead_kunjungan_tanggal", date]
-      });
+    // Hitung startDate dan endDate dari month jika perlu
+    let start = startDate;
+    let end = endDate;
+
+    if ((!startDate || !endDate) && month) {
+      start = `${month}-01`;
+      end = `${month}-31`;
     }
 
-    // Filter berdasarkan bulan
-    if (month) {
+    // Filter berdasarkan rentang tanggal
+    if (start && end) {
       kunjunganFilter.push({
-        $eq: [
-          { $substr: ["$$kunjungan.Data_lead_kunjungan_tanggal", 0, 7] },
-          month
+        $and: [
+          { $gte: ["$$kunjungan.Data_lead_kunjungan_tanggal", start] },
+          { $lte: ["$$kunjungan.Data_lead_kunjungan_tanggal", end] }
         ]
       });
     }
@@ -81,7 +82,7 @@ const getFlattenedKunjunganByUserAccess = async (req, res) => {
             $filter: {
               input: "$Data_lead_kunjungan",
               as: "kunjungan",
-              cond: kunjunganFilter.length > 0 ? { $and: kunjunganFilter } : {}, // ambil semua kalau kosong
+              cond: kunjunganFilter.length > 0 ? { $and: kunjunganFilter } : {},
             },
           },
         },
