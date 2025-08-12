@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const router = express.Router();
 const itemController = require("../../controllers/Umum/Item.Controller");
+const itemAggregate = require("../../controllers/Umum/Item.Agregate.Controller");
 
 // Multer storage configuration
 const storage = multer.diskStorage({
@@ -18,6 +19,7 @@ const upload = multer({ storage: storage })
 // GET
 router.get("/getAllItem/:domain/:hierarchy/:deleted?", itemController.getMasterItem);
 router.get("/getItemById/:id", itemController.getMasterItemId);
+router.get("/getMasterItemAgregateInOut",itemAggregate.getMasterItemAgregateInOut)
 
 // POST
 router.post("/createImage", upload.any(), itemController.createMasterItemGambar);

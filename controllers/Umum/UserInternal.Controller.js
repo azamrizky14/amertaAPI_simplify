@@ -216,7 +216,7 @@ async function loginUser(req, res) {
       return res.status(401).json({ message: "Email belum terdaftar!" });
     }
 
-    // Generate a bcrypt hash
+    // // Generate a bcrypt hash
     // bcrypt.hash(password, 10, (err, hash) => {
     //   if (err) {
     //     console.error('Error hashing password:', err);
