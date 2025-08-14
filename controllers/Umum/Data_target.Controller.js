@@ -12,6 +12,7 @@ const getDataTarget = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 // GET ALL BY MATCHDATE
 const getDataTargetMatch = async (req, res) => {
   try {
@@ -27,6 +28,7 @@ const getDataTargetMatch = async (req, res) => {
   }
 };
 
+// GET ALL BY START & END DATE
 const getDataTargetStartEndDate = async (req, res) => {
   try {
     const { deleted } = req.query;
@@ -54,6 +56,50 @@ const getDataTargetStartEndDate = async (req, res) => {
   }
 };
 
+// GET ALL PER BULAN
+const getDataTargetPerBulan = async (req, res) => {
+  try {
+    const { deleted, year, month } = req.params;
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 1);
+    const filter = {
+      $expr: {
+        $and: [
+          { $gte: [{ $toDate: "$Data_target_created" }, startDate] },
+          { $lt: [{ $toDate: "$Data_target_created" }, endDate] },
+        ],
+      },
+    };
+    if (deleted) filter.Data_target_status = deleted;
+    const MasterDataTarget = await DataTarget.find(filter);
+    res.status(200).json(MasterDataTarget);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// GET ALL PER RANGE BULAN
+const getDataTargetPerRangeBulan = async (req, res) => {
+  try {
+    const { deleted, startYear, startMonth, endYear, endMonth } = req.params;
+    const startDate = new Date(startYear, startMonth - 1, 1);
+    const endDate = new Date(endYear, endMonth, 1);
+    const filter = {
+      $expr: {
+        $and: [
+          { $gte: [{ $toDate: "$Data_target_created" }, startDate] },
+          { $lt: [{ $toDate: "$Data_target_created" }, endDate] },
+        ],
+      },
+    };
+    if (deleted) filter.Data_target_status = deleted;
+    const MasterDataTarget = await DataTarget.find(filter);
+    res.status(200).json(MasterDataTarget);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // FIND ONE BY ID
 const getDataTargetById = async (req, res) => {
   try {
@@ -66,7 +112,7 @@ const getDataTargetById = async (req, res) => {
   }
 };
 
-// FIND ONE BY NAME
+// FIND ONE BY SALES ID
 const getDataTargetBySalesId = async (req, res) => {
   try {
     const { id } = req.params;
@@ -77,6 +123,7 @@ const getDataTargetBySalesId = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 // CREATE
 const createDataTarget = async (req, res) => {
   try {
@@ -86,17 +133,15 @@ const createDataTarget = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-// Updated MasterItem
+
+// UPDATE
 const updateDataTarget = async (req, res) => {
   try {
     const { id } = req.params;
-
     const MasterDataTarget = await DataTarget.findByIdAndUpdate(id, req.body);
-
     if (!MasterDataTarget) {
       return res.status(404).json({ message: "MasterItem not found" });
     }
-
     const updatedMasterDataTarget = await DataTarget.findById(id);
     res.status(200).json(updatedMasterDataTarget);
   } catch (error) {
@@ -104,12 +149,12 @@ const updateDataTarget = async (req, res) => {
   }
 };
 
-// ----------
-
 module.exports = {
   getDataTarget,
   getDataTargetMatch,
   getDataTargetStartEndDate,
+  getDataTargetPerBulan,
+  getDataTargetPerRangeBulan,
   getDataTargetById,
   getDataTargetBySalesId,
   createDataTarget,

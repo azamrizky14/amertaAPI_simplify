@@ -43,7 +43,7 @@ router.put("/Trteknis/updateEvidentbyid/:logistikType/:logistikdate/:logistikNum
 router.get("/Trteknis/aggregate/perolehanteknisibyname", TrTeknisAgregate.TrTeknisAgregatePerolehanTeknisi);
 router.get("/Trteknis/aggregate/listperolehanteknisi",TrTeknisAgregate.TrTeknisAgregateListPerolehanTeknisi)
 router.get("/Trteknis/aggregate/listdurasipenyelesaianAVG",TrTeknisAgregate.TrTeknisAgregateListDurasiPenyelesaianAVG)
-
+router.get("/Trteknis/aggregate/listticket", TrTeknisAgregate.TrTeknisAgregateListTicket);
 
 
 
