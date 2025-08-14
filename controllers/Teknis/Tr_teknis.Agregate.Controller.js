@@ -121,8 +121,7 @@ const TrTeknisAgregateListDurasiPenyelesaianAVG = async (req, res) => {
       Tr_teknis_work_order_terpakai: { $exists: true, $not: { $size: 0 } },
     };
 
-    if (companyName !== 'all') {
-
+    if (companyName !== "all") {
       matchStage.companyName = companyName;
     }
 
@@ -198,9 +197,79 @@ const TrTeknisAgregateListDurasiPenyelesaianAVG = async (req, res) => {
   }
 };
 
+const TrTeknisAgregateListTicket = async (req, res) => {
+  const { companyName, startDate, endDate} = req.query;
+  try {
+    const filter = {Tr_teknis_created: {
+            $gt: startDate,
+            $lt: endDate,
+          }}
+          if (companyName !== "all") {
+            filter.companyName = companyName;
+          }
+    const result = await Tr_teknis.aggregate([
+      {
+        $match: filter,
+      },
+      {
+        $unwind: "$Tr_teknis_work_order_terpakai",
+      },
+      { 
+        $group: {
+          _id: "$Tr_teknis_work_order_terpakai._id",
+          Tr_teknis_pelanggan_id: {
+            $first: "$Tr_teknis_work_order_terpakai.Tr_teknis_pelanggan_id",
+          },
+          companyName: { $first: "$companyName" }, // ambil langsung dari root
+          Tr_teknis_kategori: {
+            $first: "$Tr_teknis_work_order_terpakai.Tr_teknis_kategori",
+          },
+          Tr_teknis_pelanggan_nama: {
+            $first: "$Tr_teknis_work_order_terpakai.Tr_teknis_pelanggan_nama",
+          },
+          Tr_teknis_pelanggan_server: {
+            $first: "$Tr_teknis_work_order_terpakai.Tr_teknis_pelanggan_server",
+          },
+          Tr_teknis_user_updated: {
+            $first: "$Tr_teknis_work_order_terpakai.Tr_teknis_user_updated",
+          },
+          Tr_teknis_alamat: {
+            $first: "$Tr_teknis_work_order_terpakai.Tr_teknis_alamat",
+          },
+          Tr_teknis_titik_koordinat: {
+            $first: "$Tr_teknis_work_order_terpakai.Tr_teknis_titik_koordinat",
+          },
+          Tr_teknis_keterangan: {
+            $first: "$Tr_teknis_work_order_terpakai.Tr_teknis_keterangan",
+          },
+          Tr_teknis_created: {
+            $first: "$Tr_teknis_work_order_terpakai.Tr_teknis_created",
+          },
+          Tr_teknis_tanggal: {
+            $first: "$Tr_teknis_work_order_terpakai.Tr_teknis_tanggal",
+          },
+          Tr_teknis_trouble: {
+            $first: "$Tr_teknis_work_order_terpakai.Tr_teknis_trouble",
+          },
+          Tr_teknis_action: {
+            $first: "$Tr_teknis_work_order_terpakai.Tr_teknis_action",
+          },
+        },
+      },
+    ]);
+    if (result.length > 0) {
+      res.status(200).json(result);
+    } else {
+      res.status(404).json({ message: "Data tidak ditemukan" });
+    }
+  } catch (error) {
+    console.log({ message: error.message });
+  }
+};
 
 module.exports = {
   TrTeknisAgregatePerolehanTeknisi,
   TrTeknisAgregateListPerolehanTeknisi,
   TrTeknisAgregateListDurasiPenyelesaianAVG,
+  TrTeknisAgregateListTicket,
 };
