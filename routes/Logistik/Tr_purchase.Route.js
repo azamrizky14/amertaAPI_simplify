@@ -50,6 +50,7 @@ router.get("/TrPo/getDataById/:id", TrPurchase.getTrPoById);
 router.get("/TrPo/getDataByPO/:id", TrPurchase.getTrPoByPO);
 router.get("/TrPo/getPoPrefix/:date", TrPurchase.getPoPrefix);
 router.get("/TrPo/getdataForGR/:domain/:hierarchy/:deleted?/:status?", TrPurchase.getTrPoListForGr);
+router.get("/TrPo/getdataPoWithDetail", TrPurchase.getTrPoWithDuration);
 
 router.post("/TrPo/create", TrPurchase.createTrPo);
 

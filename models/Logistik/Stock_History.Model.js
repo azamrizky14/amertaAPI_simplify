@@ -4,6 +4,9 @@ const ShSchema = mongoose.Schema({
     Sh_item_id: {
         type: String,
     },
+    Sh_item_kode: {
+        type: String
+    },
     Sh_item_nama: {
         type: String,
     },
@@ -19,8 +22,8 @@ const ShSchema = mongoose.Schema({
     Sh_item_satuan: {
         type: String,
     },
-    Sh_item_properties: {
-        type: Object,
+    Sh_item_satuan: {
+        type: String,
     },
     Sh_item_status: {
         type: Object,

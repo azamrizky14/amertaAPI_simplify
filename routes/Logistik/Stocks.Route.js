@@ -38,5 +38,6 @@ router.put("/updateCurrentStockDetail", itemController.updateCurrentItemDetail);
 
 // AGREGATE 
 router.get("/StocksOpnameAsetAgregate/:companyName", StocksController.StockOpnameAgregateAllAset)
+router.get("/StockHistoriesInOut", StocksController.StockHistoriesInOut)
 
 module.exports = router;
