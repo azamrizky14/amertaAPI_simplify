@@ -755,6 +755,7 @@ const createMasterItemExisting = async (req, res) => {
     res.status(500).json({ message: error.message })
   }
 };
+
 // Update Banyak Item Detail Berdasarkan Nama dan Lokasi
 const updateCurrentItemDetail = async (req, res) => {
   try {
@@ -772,6 +773,7 @@ const updateCurrentItemDetail = async (req, res) => {
         Sh_item_nama,
         Sh_item_id,
         Sh_item_qty,
+        item_detail_item_price,   // <-- ambil dari body
         item_detail_history_location,
         status_perubahan,
         item_detail_history,
@@ -788,6 +790,11 @@ const updateCurrentItemDetail = async (req, res) => {
       const updateFields = {
         "item_detail.$[elem].item_detail_quantity": Sh_item_qty
       };
+
+      // --- Tambahkan update price kalau ada
+      if (item_detail_item_price !== undefined) {
+        updateFields["item_detail.$[elem].item_detail_item_price"] = item_detail_item_price;
+      }
 
       // --- Jika tipe Modem/Kabel/Tiang, tambahkan SN-related fields
       if (tipeDenganSN.includes(Sh_item_tipe)) {
@@ -856,7 +863,7 @@ const updateCurrentItemDetail = async (req, res) => {
 
     const result = await Item.bulkWrite(bulkOps);
     res.status(200).json({
-      message: "Berhasil update quantity & histori & SN fields",
+      message: "Berhasil update quantity, price, histori & SN fields",
       result
     });
   } catch (error) {
@@ -864,6 +871,7 @@ const updateCurrentItemDetail = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // Update Banyak Item Detail Berdasarkan Nama dan Lokasi
 const updateEvidentItemDetail = async (req, res) => {
@@ -1277,7 +1285,6 @@ const updateReturItemDetail = async (req, res) => {
   }
 };
 
-
 const updateNewItemDetail = async (req, res) => {
   try {
     const updates = req.body;
@@ -1299,7 +1306,8 @@ const updateNewItemDetail = async (req, res) => {
       const newDetail = {
         item_detail_item_kode: data.Sh_item_id,
         item_detail_item_nama: data.Sh_item_jenis || "",
-        item_detail_item_price: "0",
+        // Ambil dari req.body, default "0" kalau tidak ada
+        item_detail_item_price: data.item_detail_item_price || "0",
         item_detail_satuan: data.Sh_item_satuan || "",
         item_detail_quantity: data.Sh_item_qty,
         item_detail_history_location: [
@@ -1322,8 +1330,10 @@ const updateNewItemDetail = async (req, res) => {
       }
 
       const result = await Item.updateOne(
-        { item_nama: itemId.toString(),
-          companyCode: data.companyCode, }, // Pastikan string
+        {
+          item_nama: itemId.toString(),
+          companyCode: data.companyCode,
+        }, 
         { $push: { item_detail: newDetail } }
       );
 

@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const { findByHierarchyAndDomain } = require("../../utils/hierarchyAndDomain");
 
 // ALL MODEL
+const { getDuration } = require("../../utils/date");
+
 const Tr_po = require("../../models/Logistik/Tr_PurchaseOrder.Model");
 const Tr_pp = require("../../models/Logistik/Tr_PurchasePayment.Model");
 const Tr_qa = require("../../models/Logistik/Tr_Qa.Model");
@@ -118,6 +120,55 @@ const getTrPoByPO = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+const getTrPoWithDuration = async (req, res) => {
+  try {
+    // kalau filter tidak pakai params, langsung kosong saja
+    const filter = {};
+
+    // Ambil semua PO
+    const TrPo = await Tr_po.find(filter).lean();
+
+    // Mapping dengan tambahan durasi
+    const enrichedData = await Promise.all(
+      TrPo.map(async (po) => {
+       const tr_po_date = po?.Tr_po_created;
+        const pp = await Tr_pp.findOne({ Tr_po_id: po.Tr_po_id }).lean();
+        const gr = await Tr_gr.findOne({ Tr_po_id: po.Tr_po_id }).lean();
+        const qa = await Tr_qa.findOne({ Tr_po_id: po.Tr_po_id }).lean();
+
+        const durasi = {
+          po_to_pp:
+            tr_po_date && pp?.Tr_pp_created_date
+              ? getDuration(tr_po_date, pp.Tr_pp_created_date)
+              : "-",
+          po_to_gr:
+            tr_po_date && gr?.Tr_gr_created_date
+              ? getDuration(tr_po_date, gr.Tr_gr_created_date)
+              : "-",
+          po_to_qa:
+            tr_po_date && qa?.Tr_qa_created_date
+              ? getDuration(tr_po_date, qa.Tr_qa_created_date)
+              : "-",
+        };
+
+        return {
+          ...po,
+          durasi,
+        };
+      })
+    );
+
+    if (enrichedData.length > 0) {
+      return res.status(200).json(enrichedData.reverse());
+    } else {
+      return res.status(404).json({ message: "DATA KOSONG" });
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 // CREATE
 const createTrPo = async (req, res) => {
   try {
@@ -776,6 +827,7 @@ module.exports = {
   updateTrPo,
   updateTrPoByPO,
   getPoPrefix,
+  getTrPoWithDuration,
 
   // PP
   getTrPp,

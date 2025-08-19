@@ -5,10 +5,10 @@ const getMasterItemAgregateInOut = async (req, res) => {
     const { startDate, endDate, companyName } = req.query;
     
     const matchStage = {
-          createdAt: {
-            $gte: new Date(startDate),
-            $lte: new Date(endDate),
-          },
+          // createdAt: {
+          //   $gte: new Date(startDate),
+          //   $lte: new Date(endDate),
+          // },
     };
 
     if (companyName !== 'all') {
@@ -76,6 +76,7 @@ const getMasterItemAgregateInOut = async (req, res) => {
         $project: {
           _id: 0,
           item_kode: "$item_detail.item_detail_item_kode",
+          item_price: "$item_detail.item_detail_item_price",
           item_nama: "$item_nama",
           item_detail_nama: "$item_detail.item_detail_item_nama",
           item_tipe: "$item_tipe",
