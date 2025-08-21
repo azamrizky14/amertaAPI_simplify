@@ -16,6 +16,9 @@ const ShSchema = mongoose.Schema({
     Sh_item_tipe: {
         type: String, 
     },
+    Sh_item_sn: {
+        type: String, 
+    },
     Sh_item_qty: {
         type: Number,
     },

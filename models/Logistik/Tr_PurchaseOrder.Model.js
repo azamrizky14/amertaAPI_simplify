@@ -41,6 +41,9 @@ const Tr_poSchema = mongoose.Schema({
     Tr_po_created: {
         type: String,
     },
+    Tr_po_updated: {
+        type: Array
+    },
     Tr_po_user_created: {
         type: String,
     },

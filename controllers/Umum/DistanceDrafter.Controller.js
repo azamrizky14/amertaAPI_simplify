@@ -33,7 +33,7 @@ const Distance = async (req, res) => {
     res
       .status(500)
       .json({ error: "Terjadi kesalahan saat mengambil data OSRM" });
-    console.log(url);
+    // console.log(url);
   }
 };
 

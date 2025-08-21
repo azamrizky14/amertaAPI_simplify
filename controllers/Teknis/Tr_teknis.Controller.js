@@ -539,7 +539,7 @@ const updateTrTeknisWorkOrderTerpakai = async (req, res) => {
           for (let i = 0; i < images.length; i++) {
             let img = images[i];
             if (typeof img === "string" && img.startsWith("http")) {
-              console.log('data image', img)
+              // console.log('data image', img)
               const downloadedFileName = await downloadImage(img);
               if (downloadedFileName) {
                 Tr_teknis_images[field][i] = downloadedFileName; // Ganti URL dengan nama file lokal
@@ -1143,7 +1143,7 @@ const updateTrTeknisEvidentById = async (req, res) => {
 // console.log('options: ',options)
 
     const updatedRecord = await Tr_teknis.findOneAndUpdate(filter, updateQuery, options);
-console.log(updatedRecord)
+// console.log(updatedRecord)
     if (!updatedRecord) {
       return res.status(404).json({ message: "Data tidak ditemukan" });
     }
