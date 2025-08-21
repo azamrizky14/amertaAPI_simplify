@@ -32,14 +32,15 @@ async function getAllUsers(req, res) {
 // Controller method to get all users
 async function getUserByRole(req, res) {
   try {
-    const { hierarchy, domain, userRole } = req.params;
+    const { domain, hierarchy,  userRole } = req.params;
     
-    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1.3);
-
-    const filter = { isDeleted: "N", companyCode: newDomain };
+    // const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1.5);
+    const newDomain = domain
+    const filter = { isDeleted: "N", companyName: newDomain };
 
     // Add optional filters if provided
     if (userRole) filter.userRole = userRole;
+   
 
     // Retrieve all users from the database
     const users = await UserExternal.find(filter);

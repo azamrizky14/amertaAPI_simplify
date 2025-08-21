@@ -263,7 +263,7 @@ const TrTeknisAgregateListTicket = async (req, res) => {
       res.status(404).json({ message: "Data tidak ditemukan" });
     }
   } catch (error) {
-    console.log({ message: error.message });
+    console.error({ message: error.message });
   }
 };
 

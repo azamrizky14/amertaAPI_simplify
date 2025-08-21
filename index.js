@@ -108,16 +108,17 @@ app.get("/ping", (req, res) => {
 
 mongoose
   .connect(
-    // "mongodb://103.178.13.50:136/internal-amerta"
-    "mongodb://103.178.13.50:236/internal-amerta"
+    "mongodb://103.178.13.50:136/internal-amerta"
+    // "mongodb://103.178.13.50:236/internal-amerta"
 
     // "mongodb://localhost:27017/internal-amerta"
     // "mongodb://root:ServerAmerta2024@77.37.47.90:27017/dbAmerta"
   )
   .then(() => {
+    const port = process.env.PORT || 5202;
     console.log("Connected to database!");
-    app.listen(5202, () => {
-      console.log("Server is running on port 5202");
+    app.listen(port, () => {
+      console.log("Server is running on port "+ port);
     });
   })
   .catch((error) => {
