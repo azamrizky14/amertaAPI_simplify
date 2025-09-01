@@ -992,7 +992,6 @@ const updateEvidentItemDetail = async (req, res) => {
   }
 };
 
-
 const updateBonMaterialItemDetail = async (req, res) => {
   try {
     const dataUpdate = req.body;
@@ -1071,6 +1070,133 @@ const updateBonMaterialItemDetail = async (req, res) => {
   } catch (error) {
     console.error("Gagal update bon material:", error);
     res.status(500).json({ message: error.message });
+  }
+};
+
+// Fungsi upsert item_detail dengan filter companyName
+const upsertEvidentItemDetail = async (req, res) => {
+  try {
+    const items = req.body;
+
+    for (const item of items) {
+      const {
+        Sh_item_satuan,
+        Sh_item_nama,
+        Sh_item_id,
+        Sh_item_kode,
+        Sh_item_tipe,
+        item_detail_quantity, // ⬅️ qty
+        item_detail_quantity_rusak, // ⬅️ qty
+        item_detail_history_location,
+        status_perubahan, // ⬅️ cuma dipakai utk hitung +/- qty
+        item_detail_kode_sn,
+        item_detail_kode_sn_status,
+        item_detail_status_kondisi,
+        item_detail_status_penggunaan,
+        item_detail_item_price,
+        companyName, // ⬅️ wajib
+      } = item;
+
+      // hitung qty final
+      const qtyUpdate =
+        status_perubahan === "out"
+          ? -Math.abs(item_detail_quantity)
+          : Math.abs(item_detail_quantity);
+
+      // validasi wajib
+      if (
+        !Sh_item_id ||
+        !Sh_item_kode ||
+        !item_detail_history_location ||
+        typeof item_detail_quantity !== "number" ||
+        !companyName
+      ) {
+        console.log("skip item tidak valid:", item);
+        continue;
+      }
+
+      // filter dasar berdasarkan tenant
+      const baseFilter = {
+        item_id: Sh_item_id,
+        companyName, // ⬅️ tambahkan filter companyName
+      };
+
+      // syarat match untuk item_detail
+      const detailMatch = {
+        item_detail_item_kode: Sh_item_kode,
+        item_detail_item_nama: Sh_item_nama, // ⬅️ isi nama di level detail
+        item_detail_history_location: {
+          $elemMatch: { item_detail_location_name: item_detail_history_location },
+        },
+      };
+
+      if (["Modem", "Kabel", "Tiang"].includes(Sh_item_tipe) && item_detail_kode_sn) {
+        detailMatch.item_detail_kode_sn = item_detail_kode_sn;
+      }
+
+      // cek existing
+      const existing = await Item.findOne({
+        ...baseFilter,
+        item_detail: { $elemMatch: detailMatch },
+      });
+
+      if (existing) {
+        // update existing qty
+        const updateOps = {
+          $inc: { "item_detail.$[elem].item_detail_quantity": qtyUpdate },
+        };
+        
+        // kalau Material / Aset, ikut update qty_rusak
+  if (["Material", "Aset"].includes(Sh_item_tipe)) {
+    updateOps.$inc["item_detail.$[elem].item_detail_quantity_rusak"] =
+      item_detail_quantity_rusak || 0;
+  }
+
+        const arrayFilter = {
+          "elem.item_detail_item_kode": Sh_item_kode,
+          "elem.item_detail_item_nama": Sh_item_nama,
+          "elem.item_detail_history_location": {
+            $elemMatch: { item_detail_location_name: item_detail_history_location },
+          },
+        };
+
+        if (["Modem", "Kabel", "Tiang"].includes(Sh_item_tipe) && item_detail_kode_sn) {
+          arrayFilter["elem.item_detail_kode_sn"] = item_detail_kode_sn;
+        }
+
+        await Item.updateOne(baseFilter, updateOps, { arrayFilters: [arrayFilter] });
+      } else {
+        // buat detail baru
+        const newDetail = {
+          item_detail_item_kode: Sh_item_kode,
+          item_detail_item_nama: Sh_item_nama, // ⬅️ masuk ke detail
+          item_detail_satuan: Sh_item_satuan,
+          item_detail_item_price: item_detail_item_price || 0,
+          item_detail_history_location: [
+            { item_detail_location_name: item_detail_history_location },
+          ],
+          item_detail_quantity: qtyUpdate,
+        };
+
+        if (["Material", "Aset"].includes(Sh_item_tipe)) {
+          newDetail.item_detail_quantity_rusak = item_detail_quantity_rusak || 0;
+        }
+
+        if (["Modem", "Kabel", "Tiang"].includes(Sh_item_tipe) && item_detail_kode_sn) {
+          newDetail.item_detail_status_penggunaan = item_detail_status_penggunaan || "B";
+          newDetail.item_detail_status_kondisi = item_detail_status_kondisi || "On";
+          newDetail.item_detail_kode_sn = item_detail_kode_sn;
+          newDetail.item_detail_kode_sn_status = item_detail_kode_sn_status || "Y";
+        }
+
+        await Item.updateOne(baseFilter, { $push: { item_detail: newDetail } });
+      }
+    }
+
+    res.status(200).json({ message: "Upsert selesai" });
+  } catch (err) {
+    console.error("Error upsertEvidentItemDetail:", err);
+    res.status(500).json({ error: "Gagal upsert" });
   }
 };
 
@@ -1175,113 +1301,138 @@ const updateClosingMaterialItemDetail = async (req, res) => {
 
 const updateReturItemDetail = async (req, res) => {
   try {
-    const dataUpdate = req.body;
-    if (!Array.isArray(dataUpdate) || dataUpdate.length === 0) {
-      return res.status(400).json({ message: "Data update kosong atau tidak valid." });
-    }
-
+    const rawData = req.body; // array of items
     const bulkOps = [];
 
-    for (const item of dataUpdate) {
+    for (const item of rawData) {
       const {
-        Sh_item_nama,
         Sh_item_id,
         Sh_item_kode,
+        Sh_item_nama,
         Sh_item_tipe,
-        item_detail_kode_sn,
+        item_detail_item_price,
         item_detail_status_penggunaan,
+        status_perubahan, // in / out
         item_detail_history_location,
-        item_properties_qty_akhir,
-        item_detail_history_masuk
+        companyName,
+        Sh_item_properties_sn,
+        item_properties_image,
+        item_detail_history_quantity,
       } = item;
 
-      if (!Sh_item_nama || !Sh_item_id || !Sh_item_kode || !item_detail_kode_sn || !item_detail_history_location) continue;
+      // tentukan qty update
+      const qtyUpdate =
+        status_perubahan === "out"
+          ? -Math.abs(item_detail_history_quantity)
+          : Math.abs(item_detail_history_quantity);
 
-      // Cek apakah kombinasi kode + sn sudah ada
-      const existing = await Item.findOne({
-        item_nama: Sh_item_nama,
-        item_id: Sh_item_id,
-        "item_detail.item_detail_item_kode": Sh_item_kode,
-        "item_detail.item_detail_kode_sn": item_detail_kode_sn,
-        "item_detail.item_detail_history_location.item_detail_location_name": item_detail_history_location
+      // siapkan history masuk / keluar
+      const historyEntry =
+        status_perubahan === "out"
+          ? {
+              item_detail_history_keluar_ke: "API",
+              item_detail_history_keluar_keterangan: "Mutasi stok via API",
+              item_detail_history_keluar_tanggal: new Date(),
+              item_detail_history_quantity: item_detail_history_quantity,
+            }
+          : {
+              item_detail_history_masuk_dari: "API",
+              item_detail_history_masuk_tgl: new Date(),
+              item_detail_history_quantity: item_detail_history_quantity,
+            };
+
+      // bulk update dengan arrayFilters
+      bulkOps.push({
+        updateOne: {
+          filter: {
+            item_id: Sh_item_id,
+            companyName: companyName, // penting: filter by companyName juga
+          },
+          update: {
+            $setOnInsert: {
+              item_id: Sh_item_id,
+              item_nama: Sh_item_nama,
+              item_tipe: Sh_item_tipe,
+              item_satuan: "Pcs",
+              item_deleted: "N",
+              companyName,
+              item_detail: [],
+              createdAt: new Date(),
+            },
+          },
+          upsert: true,
+        },
       });
 
-      if (existing) {
-        // UPDATE jika sudah ada
-        const updateOps = {
-          $set: {
-            "item_detail.$[elem].item_detail_status_penggunaan": item_detail_status_penggunaan || "N"
-          }
-        };
-
-        if (item_detail_history_masuk) {
-          updateOps.$push = {
-            "item_detail.$[elem].item_detail_history_masuk": item_detail_history_masuk
-          };
-        }
-
-        bulkOps.push({
-          updateOne: {
-            filter: {
-              item_nama: Sh_item_nama,
-              item_id: Sh_item_id,
-              "item_detail.item_detail_item_kode": Sh_item_kode,
-              "item_detail.item_detail_kode_sn": item_detail_kode_sn,
-              "item_detail.item_detail_history_location.item_detail_location_name": item_detail_history_location
+      bulkOps.push({
+        updateOne: {
+          filter: {
+            item_id: Sh_item_id,
+            companyName: companyName,
+            "item_detail.item_detail_item_kode": Sh_item_kode,
+          },
+          update: {
+            $inc: {
+              "item_detail.$[elem].item_detail_quantity": qtyUpdate,
             },
-            update: updateOps,
-            arrayFilters: [
-              {
-                "elem.item_detail_item_kode": Sh_item_kode,
-                "elem.item_detail_kode_sn": item_detail_kode_sn,
-                "elem.item_detail_history_location.item_detail_location_name": item_detail_history_location
-              }
-            ]
-          }
-        });
-      } else {
-        // INSERT jika belum ada
-        const newDetail = {
-          item_detail_item_kode: Sh_item_kode,
-          item_detail_kode_sn,
-          item_detail_status_penggunaan: item_detail_status_penggunaan || "N",
-          item_detail_quantity_mengambang: Number(item_properties_qty_akhir) || 0,
-          item_detail_history_location: [
-            {
-              item_detail_location_name: item_detail_history_location
-            }
+            $push: {
+              "item_detail.$[elem].item_detail_history_location": {
+                item_detail_location_name: item_detail_history_location,
+              },
+              ...(status_perubahan === "out"
+                ? { "item_detail.$[elem].item_detail_history_keluar": historyEntry }
+                : { "item_detail.$[elem].item_detail_history_masuk": historyEntry }),
+            },
+          },
+          arrayFilters: [
+            { "elem.item_detail_item_kode": Sh_item_kode },
           ],
-          item_detail_history_masuk: item_detail_history_masuk ? [item_detail_history_masuk] : []
-        };
+        },
+      });
 
-        bulkOps.push({
-          updateOne: {
-            filter: {
-              item_nama: Sh_item_nama,
-              item_id: Sh_item_id
+      // kalau belum ada item_detail sama sekali → tambahkan detail baru
+      bulkOps.push({
+        updateOne: {
+          filter: {
+            item_id: Sh_item_id,
+            companyName: companyName,
+            "item_detail.item_detail_item_kode": { $ne: Sh_item_kode },
+          },
+          update: {
+            $push: {
+              item_detail: {
+                item_detail_item_kode: Sh_item_kode,
+                item_detail_item_nama: Sh_item_nama,
+                item_detail_item_price: item_detail_item_price,
+                item_detail_satuan: "Pcs",
+                item_detail_status_penggunaan,
+                item_detail_quantity: qtyUpdate,
+                item_detail_history_location: [
+                  { item_detail_location_name: item_detail_history_location },
+                ],
+                item_detail_history_masuk:
+                  status_perubahan === "in" ? [historyEntry] : [],
+                item_detail_history_keluar:
+                  status_perubahan === "out" ? [historyEntry] : [],
+                ...(Sh_item_properties_sn && {
+                  Sh_item_properties_sn,
+                  item_properties_image,
+                }),
+              },
             },
-            update: {
-              $push: {
-                item_detail: newDetail
-              }
-            }
-          }
-        });
-      }
+          },
+        },
+      });
     }
 
-    if (bulkOps.length === 0) {
-      return res.status(400).json({ message: "Tidak ada data valid untuk diproses." });
+    if (bulkOps.length > 0) {
+      await Item.bulkWrite(bulkOps);
     }
 
-    const result = await Item.bulkWrite(bulkOps);
-    res.status(200).json({
-      message: "Berhasil update/insert retur item.",
-      result
-    });
+    res.status(200).json({ message: "Stock updated successfully" });
   } catch (error) {
-    console.error("Gagal update retur item:", error);
-    res.status(500).json({ message: error.message });
+    console.error("Error updateStock:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -1351,7 +1502,6 @@ const updateNewItemDetail = async (req, res) => {
     res.status(500).json({ message: "Gagal update data", error: err.message });
   }
 };
-
 
 // Updated MasterItem 
 const updateMasterItem = async (req, res) => {
@@ -1535,6 +1685,7 @@ module.exports = {
   updatedMasterItemHistoryPemakaianKabel,
   updatedMasterItemHistoryByName,
   updatedMasterItemList,
+  upsertEvidentItemDetail,
 
   // Trial 
   updatedMasterItemHistoryByNametrial
