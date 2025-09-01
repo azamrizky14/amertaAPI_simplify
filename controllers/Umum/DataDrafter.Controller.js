@@ -44,7 +44,7 @@ const getDataDrafterByServer = async (req, res) => {
 const getDataDrafterByType = async (req, res) => {
   try {
     const { domain, hierarchy, deleted, server } = req.params;
-    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 2);
+    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1);
     const filter = { companyCode: newDomain, data_drafter_type: server };
     if (deleted) filter.data_drafter_status = deleted;
     const MasterDataDrafter = await DataDrafter.find(filter);

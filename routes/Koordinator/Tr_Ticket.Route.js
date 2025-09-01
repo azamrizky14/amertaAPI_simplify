@@ -5,7 +5,7 @@ const TrTicketController = require("../../controllers/Koordinator/Tr_Ticket.Cont
 
 // GET
 router.get("/getTrTicket/:domain/:hierarchy/:deleted?", TrTicketController.getTrTicket);
-router.get("/getTrTicketByDivisi/:domain/:hierarchy/:kategori/:deleted?", TrTicketController.getTrTicketByKategori);
+router.get("/getTrTicketByDivisi/:domain/:hierarchy/:kategori", TrTicketController.getTrTicketByKategori);
 router.get("/getTrTicketByTeknisi/:domain/:hierarchy/:name/:deleted?", TrTicketController.getTrTicketByTeknisi);
 router.get("/getTrTicketByUpdated/:domain/:hierarchy/:type/:tgl/:deleted?", TrTicketController.getTrTicketByTrUpdatedHarian);
 

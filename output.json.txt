@@ -1,0 +1,50 @@
+{
+  "Data_lead_nama": "Takim",
+  "Data_lead_from": "Dsn cangkring rt 02 rw 07 banjaranyar",
+  "Data_lead_phone": "87836622722",
+  "Data_lead_status_lead": "Dihubungi",
+  "Data_lead_score": "",
+  "Data_lead_kunjungan": [
+    {
+      "Data_lead_kunjungan_tanggal": "2025-05-27",
+      "Data_lead_kunjungan_respons": "Masih nyaman dengan wifi yg lama",
+      "Data_lead_kunjungan_keterangan": "Masih nyaman dengan wifi yg lama",
+      "Data_lead_kunjungan_evident": "FOTO",
+      "Data_lead_kunjungan_timestamp": "11/06/2025,",
+      "Data_lead_kunjungan_user": "Agus Andrianto"
+    }
+  ],
+  "Data_lead_provider": {
+    "Data_lead_provider_name": "INDIHOME",
+    "Data_lead_provider_bandwith": "50Mbps",
+    "Data_lead_provider_harga": "250000"
+  },
+  "Data_lead_lokasi": "GEOLOCATION",
+  "Data_lead_time": "TIMESTAMP",
+  "Data_lead_status": "Y",
+  "Data_lead_afiliasi": "Agus Andrianto",
+  "Data_lead_created": "2025-02-21",
+  "Data_lead_updated": [
+    {
+      "Data_lead_updated_nama": "AGUS",
+      "Data_lead_updated_tanggal": "2025-02-22"
+    }
+  ],
+  "companyName": "AMERTA-KEDIRI",
+  "companyCode": [
+    0,
+    1
+  ],
+  "createdAt": {
+    "$date": "2025-06-24T02:03:52.166Z"
+  },
+  "updatedAt": {
+    "$date": "2025-06-24T02:03:52.166Z"
+  },
+  "__v": 1,
+  "Data_lead_access": [
+    {
+      "Data_lead_access_user": "Agus Andrianto"
+    }
+  ]
+}

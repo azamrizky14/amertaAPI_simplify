@@ -18,16 +18,45 @@ const getTrTicket = async (req, res) => {
 // GET BY DIVISI
 const getTrTicketByKategori = async (req, res) => {
   try {
-    const { domain, hierarchy, kategori, deleted } = req.params;
+    const { domain, hierarchy, kategori } = req.params;
+    const { deleted, startDate, endDate } = req.query;
+
     const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 2);
-    const filter = { companyCode: newDomain, Tr_ticket_kategori: kategori };
-    if (deleted) filter.Tr_ticket_status = deleted;
-    const MasterTrTicket = await TrTicket.find(filter);
+
+    // Base filter
+    const matchStage = {
+      companyCode: newDomain,
+      Tr_ticket_kategori: kategori,
+    };
+
+    if (deleted) {
+      matchStage.Tr_ticket_status = deleted;
+    }
+
+    // Filter berdasarkan Tr_ticket_created
+    if (startDate || endDate) {
+      matchStage.Tr_ticket_created = {};
+      if (startDate) {
+        matchStage.Tr_ticket_created.$gte = startDate; // YYYY-MM-DD string
+      }
+      if (endDate) {
+        matchStage.Tr_ticket_created.$lte = endDate;   // YYYY-MM-DD string
+      }
+    }
+
+    const pipeline = [
+      { $match: matchStage },
+      // Bisa tambah $sort, $lookup, atau stage lain di sini
+    ];
+
+    const MasterTrTicket = await TrTicket.aggregate(pipeline);
+
     res.status(200).json(MasterTrTicket);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 const getTrTicketByTrUpdatedHarian = async (req, res) => {
   try {
