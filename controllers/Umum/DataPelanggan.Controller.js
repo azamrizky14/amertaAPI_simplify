@@ -15,25 +15,30 @@ const getDataPelanggan = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-// Prefix
+// Prefix + companyName
 const getDataPelangganPrefix = async (req, res) => {
   try {
+    const { companyName } = req.query; // ambil dari query parameter
     const prefix = "0"; // contoh prefix
 
-    // Cari data tertinggi berdasarkan ID yang diawali prefix
+    // Cari data tertinggi berdasarkan prefix dan companyName
     const data = await DataPelanggan.findOne({
+      companyName: companyName,
       data_pelanggan_id: { $regex: `^${prefix}` },
     }).sort({ data_pelanggan_id: -1 });
 
-    // Jika tidak ada data dengan prefix tersebut, kembalikan ID pertama
+    // Jika tidak ada data dengan prefix + companyName tsb
     if (!data) {
-      return res.json({ nextId: `${prefix}00000000` });
+      return res.json({ nextId: `${prefix}00000001` });
     }
 
-    // Ambil ID terakhir dan tambahkan 1
     const lastId = data.data_pelanggan_id;
-    const numericPart = parseInt(lastId.slice(prefix.length), 10); // ambil angka setelah prefix
-    const nextNumericPart = (numericPart + 1).toString().padStart(1, "0"); // jaga agar tetap 1 digit
+    const numericPart = parseInt(lastId.slice(prefix.length), 10);
+    const numericLength = lastId.length - prefix.length;
+
+    const nextNumericPart = (numericPart + 1)
+      .toString()
+      .padStart(numericLength, "0");
 
     const nextId = `${prefix}${nextNumericPart}`;
 
@@ -42,6 +47,7 @@ const getDataPelangganPrefix = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 // FIND ONE BY ID
 const getDataPelangganById = async (req, res) => {
   try {
