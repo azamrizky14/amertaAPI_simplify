@@ -22,9 +22,12 @@ const DataPelangganSchema = mongoose.Schema(
       type: String,
       enum: ["Y", "N", "B", "C"],
     },
-    data_pelanggan_nik: {
+    data_pelanggan_tanggal_pasang: {
       type: String,
       required: true,
+    },
+    data_pelanggan_images: {
+      type: Object,
     },
     data_pelanggan_domisili: {
       type: Object,
