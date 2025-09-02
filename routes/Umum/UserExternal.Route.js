@@ -21,7 +21,7 @@ const upload = multer({ storage: storage })
 // GET ROUTER
 router.get("/detail/:userId", userExternalController.getUserById);
 router.get("/", userExternalController.getAllUsers);
-router.get("/getUserByRole/:domain/:hierarchy/:userRole?", userExternalController.getUserByRole);
+router.get("/getUserByRole/:domain/:userRole?", userExternalController.getUserByRole);
 
 // POST ROUTER
 router.post("/create", upload.single('userImage'), userExternalController.createUser)

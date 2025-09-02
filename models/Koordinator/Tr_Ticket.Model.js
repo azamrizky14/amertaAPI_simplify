@@ -41,9 +41,6 @@ const TrTicketSchema = mongoose.Schema(
         },
         companyName: {
             type: String
-        },
-        companyCode: {
-            type: Array
         }
 
     },

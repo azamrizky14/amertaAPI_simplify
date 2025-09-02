@@ -1,13 +1,10 @@
 const TrTicket = require("../../models/Koordinator/Tr_Ticket.Model");
 
-const { findByHierarchyAndDomain } = require("../../utils/hierarchyAndDomain");
-
 // GET BY DOMAIN
 const getTrTicket = async (req, res) => {
   try {
-    const { domain, hierarchy, deleted } = req.params;
-    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 2);
-    const filter = { companyCode: newDomain };
+    const { domain, deleted } = req.params;
+    const filter = { companyName: domain };
     if (deleted) filter.Tr_ticket_status = deleted;
     const MasterTrTicket = await TrTicket.find(filter);
     res.status(200).json(MasterTrTicket);
@@ -18,14 +15,13 @@ const getTrTicket = async (req, res) => {
 // GET BY DIVISI
 const getTrTicketByKategori = async (req, res) => {
   try {
-    const { domain, hierarchy, kategori } = req.params;
+    const { domain, kategori } = req.params;
     const { deleted, startDate, endDate } = req.query;
 
-    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 2);
 
     // Base filter
     const matchStage = {
-      companyCode: newDomain,
+      companyName: domain,
       Tr_ticket_kategori: kategori,
     };
 
@@ -60,20 +56,19 @@ const getTrTicketByKategori = async (req, res) => {
 
 const getTrTicketByTrUpdatedHarian = async (req, res) => {
   try {
-    const { domain, hierarchy, type, tgl, deleted } = req.params;
+    const { domain, type, tgl, deleted } = req.params;
 
     // Validasi awal
-    if (!domain || !hierarchy || !tgl) {
+    if (!domain || !tgl) {
       return res
         .status(400)
-        .json({ message: "Parameter Tidak ada : domain, hierarchy, or name" });
+        .json({ message: "Parameter Tidak ada : domain, or name" });
     }
 
     // Dapatkan company code dari helper
-    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 2);
 
     const filter = {
-      companyCode: newDomain,
+      companyName: domain,
       Tr_ticket_kategori: type,
       Tr_ticket_completition_history: {
         $elemMatch: {
@@ -112,20 +107,19 @@ const getTrTicketByTrUpdatedHarian = async (req, res) => {
 
 const getTrTicketByTeknisi = async (req, res) => {
   try {
-    const { domain, hierarchy, name, deleted } = req.params;
+    const { domain, name, deleted } = req.params;
 
     // Validasi awal
-    if (!domain || !hierarchy || !name) {
+    if (!domain || !name) {
       return res
         .status(400)
-        .json({ message: "Parameter Tidak ada : domain, hierarchy, or name" });
+        .json({ message: "Parameter Tidak ada : domain, or name" });
     }
 
     // Dapatkan company code dari helper
-    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 2);
 
     const filter = {
-      companyCode: newDomain,
+      companyName: domain,
       Tr_ticket_completition_history: {
         $elemMatch: {
           Tr_ticket_completition_pic: {
@@ -164,11 +158,20 @@ const getTrTicketById = async (req, res) => {
 const getTicketPrefix = async (req, res) => {
   try {
     const { type, date } = req.params;
+    const { domain } = req.query;
+
     const newDate = date.replace(/-/g, "");
     const prefix = `${type}-${newDate}`;
-    const data = await TrTicket.find({
+
+    let filterData = {
       Tr_ticket_id: { $regex: `^${prefix}` },
-    });
+    }
+
+    if (domain !== 'all') {
+      filterData.companyName = domain
+    }
+
+    const data = await TrTicket.find(filterData);
     if (data.length === 0) {
       return res.json({ nextId: `${prefix}-001` });
     }
