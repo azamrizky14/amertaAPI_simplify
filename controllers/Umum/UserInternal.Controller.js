@@ -13,8 +13,6 @@ const jwt = require("jsonwebtoken");
 
 const UserInternal = require("../../models/Umum/UserInternal.Models");
 
-const { findByHierarchyAndDomain } = require("../../utils/hierarchyAndDomain");
-
 // Controller method to get all users
 async function getAllUsers(req, res) {
   try {
@@ -30,11 +28,13 @@ async function getAllUsers(req, res) {
 // Controller method to get all users
 async function getUserByRole(req, res) {
   try {
-    const { hierarchy, domain, userRole } = req.params;
-    
-    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1.3);
+    const { domain, userRole } = req.params;
 
-    const filter = { isDeleted: "N", companyCode: newDomain };
+    const filter = { isDeleted: "N" };
+
+    if (domain !== 'all') {
+      filter.companyName = domain
+    }
 
     // Add optional filters if provided
     if (userRole) filter.userRole = userRole;
