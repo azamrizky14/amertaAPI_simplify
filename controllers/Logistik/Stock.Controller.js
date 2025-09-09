@@ -15,7 +15,7 @@ const getStockSh = async (req, res) => {
     const filter = { companyCode: newDomain };
 
     // Fetch the data based on the dynamic filter
-    const StockSh = await Sh.find(filter);
+    const StockSh = await Sh.find(filter, { So_item: 0 });
 
     // Check if any data was found
     if (StockSh.length > 0) {
