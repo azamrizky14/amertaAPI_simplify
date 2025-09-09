@@ -231,6 +231,10 @@ async function loginUser(req, res) {
       return res.status(401).json({ message: "Password Salah!" });
     }
 
+    if (user.isDeleted !== 'N') {
+      return res.status(401).json({ message: "User Sudah di Nonaktifkan!" });
+    }
+
     // Create a lightweight payload excluding userImage and other large fields
     const payload = {
       _id: user._id,

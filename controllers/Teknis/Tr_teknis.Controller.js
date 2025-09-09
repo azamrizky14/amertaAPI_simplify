@@ -246,7 +246,7 @@ const getAllWorkOrders = async (req, res) => {
     if (startDate && endDate) {
       dateFilters.push(
         { $gte: ["$$item.Tr_teknis_tanggal", startDate] },
-        { $lt: ["$$item.Tr_teknis_tanggal", endDate] }
+        { $lte: ["$$item.Tr_teknis_tanggal", endDate] }
       );
     }
     // ➤ Kalau tidak ada startDate/endDate tapi ada month
@@ -256,7 +256,7 @@ const getAllWorkOrders = async (req, res) => {
 
       dateFilters.push(
         { $gte: ["$$item.Tr_teknis_tanggal", fallbackStart] },
-        { $lt: ["$$item.Tr_teknis_tanggal", fallbackEnd] }
+        { $lte: ["$$item.Tr_teknis_tanggal", fallbackEnd] }
       );
     }
 
