@@ -59,6 +59,17 @@ const getDataPelangganById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+const getDataPelangganByIdPelanggan = async (req, res) => {
+  try {
+    const { id, domain } = req.params;
+    const filter = { data_pelanggan_id: id, companyName: domain };
+    const MasterDataPelanggan = await DataPelanggan.findOne(filter);
+    res.status(200).json(MasterDataPelanggan);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 // CREATE
 const createDataPelanggan = async (req, res) => {
   try {
@@ -95,6 +106,7 @@ module.exports = {
   getDataPelanggan,
   getDataPelangganPrefix,
   getDataPelangganById,
+  getDataPelangganByIdPelanggan,
   createDataPelanggan,
   updateDataPelanggan,
 };

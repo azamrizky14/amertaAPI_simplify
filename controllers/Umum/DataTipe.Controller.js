@@ -17,6 +17,19 @@ const getDataTipe = async (req, res) => {
     }
 };
 // FIND ONE BY ID
+const getDataTipeByFilter = async (req, res) => {
+    try {
+        const { nama, domain } = req.query;
+        const filter = {}
+        if (nama) filter.data_tipe_nama = nama;
+        if (domain !== 'all') filter.companyName = domain;
+        const MasterDataTipe = await DataTipe.findOne(filter);
+        res.status(200).json(MasterDataTipe);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+// FIND ONE BY ID
 const getDataTipeById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -60,5 +73,6 @@ module.exports = {
     getDataTipe,
     getDataTipeById,
     createDataTipe,
+    getDataTipeByFilter,
     updateDataTipe
 };

@@ -6,6 +6,7 @@ const DataPelangganController = require("../../controllers/Umum/DataPelanggan.Co
 // GET
 router.get("/getDataPelanggan/:domain/:hierarchy/:deleted?", DataPelangganController.getDataPelanggan);
 router.get("/getDataPelangganById/:id", DataPelangganController.getDataPelangganById);
+router.get("/getDataPelangganByIdPelanggan/:id/:domain", DataPelangganController.getDataPelangganByIdPelanggan);
 router.get("/getDataPelangganPrefix", DataPelangganController.getDataPelangganPrefix);
 
 // POST
