@@ -4,12 +4,27 @@ const TemporaryDataPelanggan = require("../../models/temporary/Temporary.DataPel
 const getTemporaryDataPelanggan = async (req, res) => {
   try {
     const { cabang } = req.params;
-    const data = await TemporaryDataPelanggan.find({ cabang: cabang });
+    const { listData } = req.query;
+
+    let projection = {}; // projection default kosong
+
+    if (listData) {
+      const fields = listData.split("-"); // contoh: "companyName-ticketName-_id"
+      
+      projection = fields.reduce((acc, key) => {
+        acc[key] = 1;
+        return acc;
+      }, {});
+    }
+
+    const data = await TemporaryDataPelanggan.find({ cabang: cabang }, projection).lean();
+
     res.status(200).json(data);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 // FIND ONE BY ID
 const getTemporaryDataPelangganById = async (req, res) => {
   try {
