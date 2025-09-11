@@ -13,13 +13,13 @@ const app = express();
 // =======================
 
 // Body parser dengan limit besar
-app.use(express.json({ limit: "50mb" })); // ✅ ditambah
-app.use(express.urlencoded({ extended: false, limit: "50mb" })); // ✅ ditambah
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: false, limit: "50mb" }));
 
 // Atur CORS
 app.use(
   cors({
-    origin: "*", // Ganti * dengan "http://103.178.13.50:801" kalau mau spesifik
+    origin: "*", // Bisa diganti dengan domain spesifik, contoh: "http://103.178.13.50:801"
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -29,7 +29,7 @@ app.use(
 app.use("/images", express.static(path.join(__dirname, "images")));
 
 // =======================
-// Routes
+// Import Routes
 // =======================
 
 // Master
@@ -65,6 +65,7 @@ const PortGateway = require("./routes/Umum/PortGateway.Route.js");
 const Cronjob = require("./routes/cronjobroute/cronjob.Route.js");
 const Distance = require("./routes/Umum/Distance.Route.js");
 const DataTarget = require("./routes/Umum/Data_target.Route.js");
+const Grading = require("./routes/Grading/Grading.Route.js");
 
 // Temporary
 const TempDataPelanggan = require("./routes/temporary/Temporary.DataPelanggan.Route.js");
@@ -111,7 +112,7 @@ app.use("/api/Stock", Stock);
 // Temporary
 app.use("/api/tempdata", TempDataPelanggan);
 
-// Tambahan Umum
+// Umum
 app.use("/api/userInternal", userInternal);
 app.use("/api/userExternal", userExternal);
 app.use("/api/utilities", utilities);
@@ -129,6 +130,7 @@ app.use("/api/jarak", Distance);
 app.use("/api/DataTarget", DataTarget);
 app.use("/api/DataCoa", DataCoa);
 app.use("/api/TrPemasukan", TrPemasukan);
+app.use("/api/Grading", Grading);
 
 // =======================
 // Test Routes

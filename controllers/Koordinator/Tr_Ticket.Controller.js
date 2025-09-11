@@ -21,9 +21,12 @@ const getTrTicketByKategori = async (req, res) => {
 
     // Base filter
     const matchStage = {
-      companyName: domain,
       Tr_ticket_kategori: kategori,
     };
+
+    if (domain !== 'all') {
+      matchStage.companyName = domain;
+    }
 
     if (deleted) {
       matchStage.Tr_ticket_status = deleted;
