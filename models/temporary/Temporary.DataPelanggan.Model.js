@@ -6,7 +6,7 @@ const DataPelangganSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
-    tanggalRegistrasi: {
+    TanggalRegistrasi: {
       type: String,
       required: true,
     },
@@ -38,13 +38,13 @@ const DataPelangganSchema = mongoose.Schema(
       type: Object,
       default: {},
     },
-    KodePost: {
+    KodePos: {
       type: Number,
       required: true,
     },
     Email: {
       type: String,
-      required: true,
+      // required: true,
     },
     bandwith: {
       type: String,
@@ -84,13 +84,13 @@ const DataPelangganSchema = mongoose.Schema(
     },
     router: {
       type: String,
-      required: true,
+      // required: true,
     },
     sales: {
       type: String,
       required: true,
     },
-    status: {
+    Status: {
       type: String,
       required: true,
     },
