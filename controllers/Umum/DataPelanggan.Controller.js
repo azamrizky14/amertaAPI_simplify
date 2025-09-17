@@ -5,9 +5,9 @@ const { findByHierarchyAndDomain } = require("../../utils/hierarchyAndDomain");
 // GET BY DOMAIN
 const getDataPelanggan = async (req, res) => {
   try {
-    const { domain, hierarchy, deleted } = req.params;
-    const newDomain = await findByHierarchyAndDomain(hierarchy, domain, 1);
-    const filter = { companyCode: newDomain };
+    const { domain, deleted } = req.params;
+    const filter = {};
+    if (domain !== "all") filter.companyName = domain;
     if (deleted) filter.data_pelanggan_status = deleted;
     const MasterDataPelanggan = await DataPelanggan.find(filter);
     res.status(200).json(MasterDataPelanggan);

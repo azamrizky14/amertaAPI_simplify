@@ -217,13 +217,13 @@ async function loginUser(req, res) {
     }
 
     // Generate a bcrypt hash
-    // bcrypt.hash(password, 10, (err, hash) => {
-    //   if (err) {
-    //     console.error('Error hashing password:', err);
-    //   } else {
-    //     console.log('Generated bcrypt hash:', hash);
-    //   }
-    // });
+    bcrypt.hash(password, 10, (err, hash) => {
+      if (err) {
+        console.error('Error hashing password:', err);
+      } else {
+        console.log('Generated bcrypt hash:', hash);
+      }
+    });
 
     // Compare the provided password with the hashed password in the database
     const isPasswordValid = await bcrypt.compare(password, user.password);
