@@ -14,6 +14,7 @@ router.post("/createDataPelanggan", DataPelangganController.createDataPelanggan)
 
 // UPDATE
 router.put("/updateDataPelanggan/:id",DataPelangganController.updateDataPelanggan);
+router.put("/updateDataPelangganKode/:id",DataPelangganController.updateDataPelangganKode);
 
 
 

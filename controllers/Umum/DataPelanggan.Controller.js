@@ -100,6 +100,28 @@ const updateDataPelanggan = async (req, res) => {
   }
 };
 
+// Updated MasterItem
+const updateDataPelangganKode = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+const updatedMasterDataPelanggan = await DataPelanggan.findOneAndUpdate(
+  {data_pelanggan_id: id},
+  req.body,
+  { new: true } // langsung dapat data terbaru
+);
+
+if (!updatedMasterDataPelanggan) {
+  return res.status(404).json({ message: "DataPelanggan not found" });
+}
+
+res.status(200).json(updatedMasterDataPelanggan);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // ----------
 
 module.exports = {
@@ -109,4 +131,5 @@ module.exports = {
   getDataPelangganByIdPelanggan,
   createDataPelanggan,
   updateDataPelanggan,
+  updateDataPelangganKode,
 };
