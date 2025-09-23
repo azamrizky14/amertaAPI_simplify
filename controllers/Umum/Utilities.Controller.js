@@ -37,9 +37,41 @@ async function getUtilsByName(req, res) {
   }
 }
 
+// Controller method to add a new page
+async function pageCreatePage(req, res) {
+  try {
+    const newPage = req.body;
+
+    // Cek apakah sudah ada page dengan pageCode yang sama
+    const existing = await Util.findOne({
+      utilName: "page",
+      "utilData.pageCode": newPage.pageCode
+    });
+
+    if (existing) {
+      return res.status(400).json({ message: "PageCode already exists" });
+    }
+
+    // Push page baru ke utilData
+    const utilities = await Util.findOneAndUpdate(
+      { utilName: "page" },
+      { $push: { utilData: newPage } },
+      { new: true } // return hasil setelah update
+    );
+
+    res.json(utilities);
+  } catch (error) {
+    console.error("Error adding page:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 // Export the controller methods
 module.exports = {
   getAllUtilities,
-  getUtilsByName
+  getUtilsByName,
+
+  //Page
+  pageCreatePage,
   // Add more controller methods as needed
 };

@@ -10,6 +10,10 @@ const utilitiesConntroller = require("../../controllers/Umum/Utilities.Controlle
 router.get("/", utilitiesConntroller.getAllUtilities);
 router.get("/byName/:utilName", utilitiesConntroller.getUtilsByName);
 
+// PORT PAGE
+
+router.post("/dev/page/createPage", utilitiesConntroller.pageCreatePage);
+
 // POST ROUTER
 
 // PUT ROUTER
