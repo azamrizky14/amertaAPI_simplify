@@ -1,36 +1,7 @@
-// =======================
-// Import Dependencies
-// =======================
 const express = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors");
-const path = require("path");
 
-const app = express();
-
-// =======================
-// Middleware
-// =======================
-
-// Body parser dengan limit besar
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: false, limit: "50mb" }));
-
-// Atur CORS
-app.use(
-  cors({
-    origin: "*", // Bisa diganti dengan domain spesifik, contoh: "http://103.178.13.50:801"
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-
-// Static folder untuk gambar
-app.use("/images", express.static(path.join(__dirname, "images")));
-
-// =======================
-// Import Routes
-// =======================
+// Auth route
 
 // Master
 const Company = require("./routes/Umum/Company.Route.js");
@@ -40,7 +11,6 @@ const Tr_task = require("./routes/Koordinator/Tr_Task.Route.js");
 const Tr_ticket = require("./routes/Koordinator/Tr_Ticket.Route.js");
 const Tr_crm = require("./routes/Pelayanan/Tr_Crm.Route.js");
 const Tr_data_lead = require("./routes/Pelayanan/Data_Lead.Route.js");
-
 // Transaksi
 const Tr_teknis = require("./routes/Teknis/Tr_teknis.Route.js");
 const Tr_purchase = require("./routes/Logistik/Tr_purchase.Route.js");
@@ -66,31 +36,42 @@ const Cronjob = require("./routes/cronjobroute/cronjob.Route.js");
 const Distance = require("./routes/Umum/Distance.Route.js");
 const DataTarget = require("./routes/Umum/Data_target.Route.js");
 const Grading = require("./routes/Grading/Grading.Route.js");
+const Area = require("./routes/Arearoute/Area.Route.js");
 
-// Temporary
+
+// Temporary 
 const TempDataPelanggan = require("./routes/temporary/Temporary.DataPelanggan.Route.js");
 
 // Keuangan
 const DataCoa = require("./routes/Keuangan/DataCoa.Route.js");
 const TrPemasukan = require("./routes/Keuangan/Tr_pemasukan.Route.js");
 
-// Mikrotik
+// Connect mikrotik
 const Mikrotik = require("./routes/Mikrotik/Mikrotik.Route.js");
 
-// OLT Management
+// Olt Management
 const OLT = require("./routes/Noc/Olt.Route.js");
 
-// =======================
-// Register Routes
-// =======================
+const cors = require("cors");
+const path = require("path");
 
+const app = express();
+
+// middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cors());
+app.use("/images", express.static(path.join(__dirname, "images")));
+
+// Auth Route
+
+// routes
 // CronJob
 app.use("/api/cronjob", Cronjob);
-
 // Master
 app.use("/api/company", Company);
 
-// OLT
+// Management OLT
 app.use("/api/olt", OLT);
 
 // Koordinator
@@ -112,7 +93,7 @@ app.use("/api/Stock", Stock);
 // Temporary
 app.use("/api/tempdata", TempDataPelanggan);
 
-// Umum
+// Tambahan
 app.use("/api/userInternal", userInternal);
 app.use("/api/userExternal", userExternal);
 app.use("/api/utilities", utilities);
@@ -130,11 +111,9 @@ app.use("/api/jarak", Distance);
 app.use("/api/DataTarget", DataTarget);
 app.use("/api/DataCoa", DataCoa);
 app.use("/api/TrPemasukan", TrPemasukan);
-app.use("/api/Grading", Grading);
+app.use("/api/Grading",Grading);
+app.use("/api/Area",Area);
 
-// =======================
-// Test Routes
-// =======================
 app.get("/", (req, res) => {
   res.send("Hello from Node API Server Updated");
 });
@@ -143,13 +122,11 @@ app.get("/ping", (req, res) => {
   res.send({ message: "Y" });
 });
 
-// =======================
-// Database & Server
-// =======================
 mongoose
   .connect(
     // "mongodb://103.178.13.50:136/internal-amerta"
     "mongodb://103.178.13.50:236/internal-amerta"
+
     // "mongodb://localhost:27017/internal-amerta"
     // "mongodb://root:ServerAmerta2024@77.37.47.90:27017/dbAmerta"
   )

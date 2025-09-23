@@ -10,6 +10,11 @@ const Tr_pemasukanSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    Tr_pemasukan_userId: {
+      type: String,
+      ref: "datapelanggannonpembayaran",
+      required: true,
+    },
     Tr_pemasukan_kategori: {
       type: String,
       required: true,
@@ -30,9 +35,6 @@ const Tr_pemasukanSchema = mongoose.Schema(
     },
     companyName: {
       type: String,
-    },
-    companyCode: {
-      type: Array,
     },
   },
   {
