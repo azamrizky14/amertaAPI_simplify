@@ -580,7 +580,7 @@ const countDataLeadByAfiliasiandMonth = async (req, res) => {
   try {
     
     const { afiliasi, year } = req.query;
-    const filter = {};
+    const filter = {Data_lead_status: "Y"};
 
     if (afiliasi) {
       filter.Data_lead_afiliasi = afiliasi
@@ -608,7 +608,7 @@ const countDataLeadByAfiliasiandDate = async (req, res) => {
   try {
     
     const { afiliasi, year } = req.query;
-    const filter = {};
+    const filter = {Data_lead_status: "Y"};
 
     if (afiliasi) {
       filter.Data_lead_afiliasi = afiliasi
