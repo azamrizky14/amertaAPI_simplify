@@ -37,6 +37,7 @@ const Distance = require("./routes/Umum/Distance.Route.js");
 const DataTarget = require("./routes/Umum/Data_target.Route.js");
 const Grading = require("./routes/Grading/Grading.Route.js");
 const Area = require("./routes/Arearoute/Area.Route.js");
+const Schedule = require("./routes/Scheduleroute/Schedule.Route.js");
 
 
 // Temporary 
@@ -113,6 +114,7 @@ app.use("/api/DataCoa", DataCoa);
 app.use("/api/TrPemasukan", TrPemasukan);
 app.use("/api/Grading",Grading);
 app.use("/api/Area",Area);
+app.use("/api/Schedule",Schedule);
 
 app.get("/", (req, res) => {
   res.send("Hello from Node API Server Updated");
@@ -124,8 +126,8 @@ app.get("/ping", (req, res) => {
 
 mongoose
   .connect(
-    // "mongodb://103.178.13.50:136/internal-amerta"
-    "mongodb://103.178.13.50:236/internal-amerta"
+    "mongodb://103.178.13.50:136/internal-amerta"
+    // "mongodb://103.178.13.50:236/internal-amerta"
 
     // "mongodb://localhost:27017/internal-amerta"
     // "mongodb://root:ServerAmerta2024@77.37.47.90:27017/dbAmerta"

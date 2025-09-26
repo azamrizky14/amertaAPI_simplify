@@ -37,7 +37,7 @@ const DataLeadSchema = mongoose.Schema(
     },
     Data_lead_status: {
       type: String,
-      enum: ["Y", "N"],
+      enum: ["Y", "U", "N"],
     },
     Data_lead_afiliasi: {
       type: String,

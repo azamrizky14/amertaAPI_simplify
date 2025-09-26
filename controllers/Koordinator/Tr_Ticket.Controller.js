@@ -203,19 +203,42 @@ const createTrTicket = async (req, res) => {
   }
 };
 
-// Update
+// Update dengan push ke Tr_ticket_updated
 const updateTrTicket = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const MasterTrTicket = await TrTicket.findByIdAndUpdate(id, req.body);
+    // ambil data dari body
+    const {
+      Tr_ticket_updated_nama,
+      Tr_ticket_updated_tanggal,
+      ...updateFields
+    } = req.body;
+
+    // buat query update
+    const updateQuery = {
+      ...updateFields,
+    };
+
+    // kalau ada data untuk di-push ke history
+    if (Tr_ticket_updated_nama && Tr_ticket_updated_tanggal) {
+      updateQuery.$push = {
+        Tr_ticket_updated: {
+          Tr_ticket_updated_nama,
+          Tr_ticket_updated_tanggal,
+        },
+      };
+    }
+
+    const MasterTrTicket = await TrTicket.findByIdAndUpdate(id, updateQuery, {
+      new: true, // biar return data terbaru
+    });
 
     if (!MasterTrTicket) {
       return res.status(404).json({ message: "MasterItem not found" });
     }
 
-    const updatedMasterTrTicket = await TrTicket.findById(id);
-    res.status(200).json(updatedMasterTrTicket);
+    res.status(200).json(MasterTrTicket);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
