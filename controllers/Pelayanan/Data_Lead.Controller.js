@@ -78,6 +78,7 @@ const getFlattenedKunjunganByUserAccess = async (req, res) => {
         $project: {
           Data_lead_nama: 1,
           Data_lead_phone: 1,
+          Data_lead_lokasi: 1,   // ⬅️ ini harus ada
           filteredKunjungan: {
             $filter: {
               input: "$Data_lead_kunjungan",
@@ -93,6 +94,8 @@ const getFlattenedKunjunganByUserAccess = async (req, res) => {
           leadId: "$_id",
           leadNama: "$Data_lead_nama",
           leadPhone: "$Data_lead_phone",
+          leadKoordinat: "$Data_lead_lokasi",
+          // leadKoordinat: "Cok",
           kunjunganTanggal: "$filteredKunjungan.Data_lead_kunjungan_tanggal",
           kunjunganRespons: "$filteredKunjungan.Data_lead_kunjungan_respons",
           kunjunganKeterangan: "$filteredKunjungan.Data_lead_kunjungan_keterangan",
