@@ -30,7 +30,8 @@ async function getUserByRole(req, res) {
   try {
     const { domain, userRole } = req.params;
 
-    const filter = { isDeleted: "N" };
+    const filter = { isDeleted: "N", 
+userAccStatus: "enable", };
 
     if (domain !== 'all') {
       filter.companyName = domain
