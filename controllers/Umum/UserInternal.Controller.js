@@ -138,6 +138,44 @@ async function updateUserOne(req, res) {
   }
 }
 
+// Ganti pageCode lama (dari URL) dengan pageCode baru (dari body)
+async function replaceUserPageCode(req, res) {
+  try {
+    const oldCode = req.params.code;          // code lama dari URL
+    const { pageCode: newCode } = req.body;   // code baru dari body
+
+    if (!newCode) {
+      return res.status(400).json({ message: "New pageCode is required" });
+    }
+
+    // Update semua user yang masih accessEdited = false
+    const result = await UserInternal.updateMany(
+      {
+        accessEdited: "N",
+        "userAccess.pageCode": oldCode
+      },
+      {
+        $set: { "userAccess.$[elem].pageCode": newCode }
+      },
+      {
+        arrayFilters: [{ "elem.pageCode": oldCode }]
+      }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ message: "No users updated" });
+    }
+
+    res.json({
+      message: `pageCode "${oldCode}" replaced with "${newCode}" successfully in ${result.modifiedCount} records`,
+      result
+    });
+  } catch (error) {
+    console.error("Error replacing pageCode:", error);
+    res.status(500).json({ message: error?.message ?? error });
+  }
+}
+
 async function createUser(req, res) {
   try {
     const email = req.body.email
@@ -308,6 +346,7 @@ module.exports = {
   getUserById,
   getUserByRole,
 
-  listBycompanyCode
+  listBycompanyCode,
+  replaceUserPageCode
   // Add more controller methods as needed
 };
