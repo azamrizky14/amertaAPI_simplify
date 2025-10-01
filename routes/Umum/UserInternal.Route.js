@@ -32,6 +32,7 @@ router.post("/listBycompanyCode", userInternalController.listBycompanyCode);
 // PUT ROUTER
 router.put("/updateOne/:userId", userInternalController.updateUserOne);
 router.put("/update/:_id", upload.single('userImage'), userInternalController.updateUser)
+router.put("/updatePageCode/:code", userInternalController.replaceUserPageCode);
 // Add more routes as needed
 
 module.exports = router;

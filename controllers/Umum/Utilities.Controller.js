@@ -37,6 +37,30 @@ async function getUtilsByName(req, res) {
   }
 }
 
+// Controller method to update utility by utilName
+async function updateUtilsByName(req, res) {
+  try {
+    const reqUtilName = req.params.utilName;
+    const updateData = req.body;
+
+    const updatedUtility = await Utilities.findOneAndUpdate(
+      { isDeleted: "N", utilName: reqUtilName }, // filter by utilName
+      { $set: updateData },                      // update fields
+      { new: true }                              // return updated document
+    );
+
+    if (!updatedUtility) {
+      return res.status(404).json({ message: "Utility not found" });
+    }
+
+    res.json(updatedUtility);
+  } catch (error) {
+    console.error("Error updating utility:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+
 // Controller method to add a new page
 async function pageCreatePage(req, res) {
   try {
@@ -134,6 +158,7 @@ async function pageUpdateByCode(req, res) {
 module.exports = {
   getAllUtilities,
   getUtilsByName,
+  updateUtilsByName,
 
   //Page
   pageCreatePage,

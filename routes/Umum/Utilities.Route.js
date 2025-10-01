@@ -10,9 +10,15 @@ const utilitiesConntroller = require("../../controllers/Umum/Utilities.Controlle
 router.get("/", utilitiesConntroller.getAllUtilities);
 router.get("/byName/:utilName", utilitiesConntroller.getUtilsByName);
 
-// PORT PAGE
+router.put("/byName/:utilName", utilitiesConntroller.updateUtilsByName);
 
-router.post("/dev/page/createPage", utilitiesConntroller.pageCreatePage);
+// PORT PAGE
+router.get("/page/getPage/:code", utilitiesConntroller.pageGetByCode);
+router.post("/page/createPage", utilitiesConntroller.pageCreatePage);// full replace
+router.put("/page/update/:code", utilitiesConntroller.pageUpdateByCode);
+
+// router.patch("/page/:code", utilitiesController.pageUpdateByCode);
+
 
 // POST ROUTER
 
