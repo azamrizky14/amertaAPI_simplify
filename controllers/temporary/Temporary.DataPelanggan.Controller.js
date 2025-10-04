@@ -72,13 +72,13 @@ const updateTemporaryDataPelanggan = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const reqdata = await PortGateway.findByIdAndUpdate(id, req.body);
+    const reqdata = await TemporaryDataPelanggan.findByIdAndUpdate(id, req.body);
 
     if (!reqdata) {
       return res.status(404).json({ message: "Not found" });
     }
 
-    const data = await PortGateway.findById(id);
+    const data = await TemporaryDataPelanggan.findById(id);
     res.status(200).json(data);
   } catch (error) {
     res.status(500).json({ message: error.message });
